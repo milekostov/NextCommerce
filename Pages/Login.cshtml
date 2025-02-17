@@ -1,0 +1,30 @@
+@page
+@model NextCommerce.Pages.LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<div class="container">
+    <h2>Login</h2>
+    
+    @if (!string.IsNullOrEmpty(Model.Message))
+    {
+        <div class="alert @(Model.Message.Contains("Welcome") ? "alert-success" : "alert-danger")">
+            @Model.Message
+        </div>
+    }
+
+    <form method="post">
+        <div class="form-group mb-3">
+            <label for="username">Username:</label>
+            <input type="text" class="form-control" id="username" asp-for="Username" required />
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" id="password" asp-for="Password" required />
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+</div> 

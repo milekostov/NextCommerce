@@ -6,6 +6,7 @@ namespace NextCommerce.Pages;
 public class IndexModel : PageModel
 {
     private readonly ILogger<IndexModel> _logger;
+    public string? LoggedUser { get; set; }
 
     public IndexModel(ILogger<IndexModel> logger)
     {
@@ -14,6 +15,6 @@ public class IndexModel : PageModel
 
     public void OnGet()
     {
-
+        LoggedUser = HttpContext.Session.GetString("LoggedUser");
     }
 }

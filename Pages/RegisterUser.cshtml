@@ -1,0 +1,30 @@
+@page
+@model NextCommerce.Pages.RegisterUserModel
+@{
+    ViewData["Title"] = "Register New User";
+}
+
+<div class="container">
+    <h2>Register New User</h2>
+    
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <form method="post">
+        <div class="form-group mb-3">
+            <label for="username">Username:</label>
+            <input type="text" class="form-control" id="username" asp-for="Username" required />
+        </div>
+        
+        <div class="form-group mb-3">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" id="password" asp-for="Password" required />
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Register</button>
+    </form>
+</div> 
