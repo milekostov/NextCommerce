@@ -34,8 +34,8 @@ namespace NextCommerce.Pages.Products
             {
                 connection.Open();
                 var command = new SqlCommand(
-                    "SELECT p.Id, p.Name, p.Description, p.Price, p.DateCreated, p.CategoryId " +
-                    "FROM Products p", connection);
+                    "SELECT p.Id, p.Name, p.Description, p.Price, p.DateCreated, c.Name AS CategoryName " +
+                    "FROM Products p LEFT JOIN Category c ON p.CategoryId = c.Id", connection);
                 using (var reader = command.ExecuteReader())
                 {
                     ProductList.Clear();
@@ -48,7 +48,7 @@ namespace NextCommerce.Pages.Products
                             Description = reader.GetString(2),
                             Price = reader.GetDecimal(3),
                             DateCreated = reader.GetDateTime(4),
-                            CategoryId = reader.IsDBNull(5) ? (int?)null : reader.GetInt32(5)
+                            CategoryName = reader.IsDBNull(5) ? null : reader.GetString(5) // Get category name
                         });
                     }
                 }
@@ -76,28 +76,6 @@ namespace NextCommerce.Pages.Products
             }
         }
 
-        public IActionResult OnPostAddProduct() // Method to handle adding a new product
-        {
-            if (!ModelState.IsValid)
-            {
-                LoadCategories(); // Reload categories if model state is invalid
-                return Page();
-            }
-
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                connection.Open();
-                var command = new SqlCommand("INSERT INTO Products (Name, Description, Price, CategoryId) VALUES (@Name, @Description, @Price, @CategoryId)", connection);
-                command.Parameters.AddWithValue("@Name", NewProduct.Name);
-                command.Parameters.AddWithValue("@Description", NewProduct.Description);
-                command.Parameters.AddWithValue("@Price", NewProduct.Price);
-                command.Parameters.AddWithValue("@CategoryId", NewProduct.CategoryId);
-                command.ExecuteNonQuery();
-            }
-
-            return RedirectToPage(); // Redirect to refresh the product list
-        }
-
         public IActionResult OnPostDelete(int id)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
@@ -120,6 +98,7 @@ namespace NextCommerce.Pages.Products
             public decimal Price { get; set; }
             public DateTime DateCreated { get; set; }
             public int? CategoryId { get; set; }
+            public string CategoryName { get; set; } // New property for category name
         }
 
         // Nested Category class
@@ -127,6 +106,14 @@ namespace NextCommerce.Pages.Products
         {
             public int Id { get; set; }
             public string Name { get; set; }
+        }
+
+        public class NewProductModel
+        {
+            public string Name { get; set; }
+            public string Description { get; set; }
+            public decimal Price { get; set; }
+            public int CategoryId { get; set; } // Ensure this property exists
         }
     }
 } 
