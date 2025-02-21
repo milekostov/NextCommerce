@@ -12,6 +12,10 @@ namespace NextCommerce.Pages.Products
         private readonly IConfiguration _configuration;
 
         public List<Product> ProductList { get; set; } = new List<Product>();
+        public List<Category> Categories { get; set; } = new List<Category>(); // List to hold categories
+
+        [BindProperty]
+        public Product NewProduct { get; set; } = new Product(); // Property to bind new product data
 
         public ProductsModel(IConfiguration configuration)
         {
@@ -21,6 +25,7 @@ namespace NextCommerce.Pages.Products
         public void OnGet()
         {
             LoadProducts();
+            LoadCategories(); // Load categories on GET
         }
 
         public void LoadProducts()
@@ -50,6 +55,49 @@ namespace NextCommerce.Pages.Products
             }
         }
 
+        public void LoadCategories() // Method to load categories
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand("SELECT Id, Name FROM Category", connection);
+                using (var reader = command.ExecuteReader())
+                {
+                    Categories.Clear();
+                    while (reader.Read())
+                    {
+                        Categories.Add(new Category
+                        {
+                            Id = reader.GetInt32(0),
+                            Name = reader.GetString(1)
+                        });
+                    }
+                }
+            }
+        }
+
+        public IActionResult OnPostAddProduct() // Method to handle adding a new product
+        {
+            if (!ModelState.IsValid)
+            {
+                LoadCategories(); // Reload categories if model state is invalid
+                return Page();
+            }
+
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand("INSERT INTO Products (Name, Description, Price, CategoryId) VALUES (@Name, @Description, @Price, @CategoryId)", connection);
+                command.Parameters.AddWithValue("@Name", NewProduct.Name);
+                command.Parameters.AddWithValue("@Description", NewProduct.Description);
+                command.Parameters.AddWithValue("@Price", NewProduct.Price);
+                command.Parameters.AddWithValue("@CategoryId", NewProduct.CategoryId);
+                command.ExecuteNonQuery();
+            }
+
+            return RedirectToPage(); // Redirect to refresh the product list
+        }
+
         public IActionResult OnPostDelete(int id)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
@@ -72,6 +120,13 @@ namespace NextCommerce.Pages.Products
             public decimal Price { get; set; }
             public DateTime DateCreated { get; set; }
             public int? CategoryId { get; set; }
+        }
+
+        // Nested Category class
+        public class Category
+        {
+            public int Id { get; set; }
+            public string Name { get; set; }
         }
     }
 } 
