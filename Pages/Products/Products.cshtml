@@ -36,7 +36,10 @@
                         <input type="hidden" name="id" value="@product.Id" />
                         <button type="submit" class="btn btn-danger">Delete</button>
                     </form>
-                    <button class="btn btn-warning" onclick="openEditModal(@product.Id, '@product.Name', '@product.Description', @product.Price, @product.CategoryId)">Edit</button>
+                    @if (HttpContext.Session.GetString("LoggedUser") != null)
+                    {
+                        <button class="btn btn-warning" onclick="openEditModal(@product.Id, '@product.Name', '@product.Description', @product.Price, @product.CategoryId)">Edit</button>
+                    }
                 </td>
             </tr>
         }
@@ -106,11 +109,11 @@ function searchProducts() {
 }
 
 function openEditModal(id, name, description, price, categoryId) {
-    document.getElementById('editProductId').value = id;
-    document.getElementById('editProductName').value = name;
-    document.getElementById('editProductDescription').value = description;
-    document.getElementById('editProductPrice').value = price;
-    document.getElementById('editProductCategoryId').value = categoryId;
+    $('#editProductId').val(id);
+    $('#editProductName').val(name);
+    $('#editProductDescription').val(description);
+    $('#editProductPrice').val(price);
+    $('#editProductCategoryId').val(categoryId);
     $('#editProductModal').modal('show');
 }
 </script> 
