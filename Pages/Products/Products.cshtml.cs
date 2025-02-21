@@ -89,6 +89,23 @@ namespace NextCommerce.Pages.Products
             return RedirectToPage();
         }
 
+        public IActionResult OnPostEdit(int id, string name, string description, decimal price, int categoryId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand("UPDATE Products SET Name = @Name, Description = @Description, Price = @Price, CategoryId = @CategoryId WHERE Id = @Id", connection);
+                command.Parameters.AddWithValue("@Id", id);
+                command.Parameters.AddWithValue("@Name", name);
+                command.Parameters.AddWithValue("@Description", description);
+                command.Parameters.AddWithValue("@Price", price);
+                command.Parameters.AddWithValue("@CategoryId", categoryId);
+                command.ExecuteNonQuery();
+            }
+
+            return RedirectToPage();
+        }
+
         // Nested Product class
         public class Product
         {
