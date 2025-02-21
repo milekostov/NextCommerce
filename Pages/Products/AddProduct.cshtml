@@ -1,35 +1,50 @@
 @page
 @model NextCommerce.Pages.Products.AddProductModel
 
-<h2>Add New Product</h2>
+@{
+    ViewData["Title"] = "Add New Product";
+}
 
-<form method="post">
-    <div class="form-group">
-        <label for="name">Product Name</label>
-        <input type="text" asp-for="NewProduct.Name" class="form-control" required />
-    </div>
+<h2 class="text-center my-4">Add New Product</h2>
 
-    <div class="form-group">
-        <label for="description">Description</label>
-        <textarea asp-for="NewProduct.Description" class="form-control"></textarea>
-    </div>
+<div class="container">
+    <form method="post" class="needs-validation" novalidate>
+        <div class="form-group">
+            <label asp-for="NewProduct.Name" class="font-weight-bold"></label>
+            <input asp-for="NewProduct.Name" class="form-control" placeholder="Enter product name" required />
+            <span asp-validation-for="NewProduct.Name" class="text-danger"></span>
+        </div>
 
-    <div class="form-group">
-        <label for="price">Price</label>
-        <input type="number" asp-for="NewProduct.Price" step="0.01" class="form-control" required />
-    </div>
+        <div class="form-group">
+            <label asp-for="NewProduct.Description" class="font-weight-bold"></label>
+            <textarea asp-for="NewProduct.Description" class="form-control" placeholder="Enter product description" rows="3"></textarea>
+            <span asp-validation-for="NewProduct.Description" class="text-danger"></span>
+        </div>
 
-    <div class="form-group">
-        <label for="category">Category</label>
-        <select asp-for="NewProduct.CategoryId" class="form-control">
-            <option value="">-- Select Category --</option>
-            @foreach (var category in Model.Categories)
-            {
-                <option value="@category.Id">@category.Name</option>
-            }
-        </select>
-    </div>
+        <div class="form-group">
+            <label asp-for="NewProduct.Price" class="font-weight-bold"></label>
+            <input asp-for="NewProduct.Price" class="form-control" type="number" step="0.01" placeholder="Enter product price" required />
+            <span asp-validation-for="NewProduct.Price" class="text-danger"></span>
+        </div>
 
-    <button type="submit" class="btn btn-success">Add Product</button>
-    <a href="/Products/Products" class="btn btn-secondary">Cancel</a>
-</form>
+        <div class="form-group">
+            <label asp-for="NewProduct.CategoryId" class="font-weight-bold"></label>
+            <select asp-for="NewProduct.CategoryId" class="form-control" required>
+                <option value="">-- Select Category --</option>
+                @foreach (var category in Model.Categories)
+                {
+                    <option value="@category.Id">@category.Name</option>
+                }
+            </select>
+            <span asp-validation-for="NewProduct.CategoryId" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Add Product</button>
+        <a href="/Products/Products" class="btn btn-secondary btn-block">Back to Products</a>
+        <a href="/Products/AddCategory" class="btn btn-success btn-block">Add New Category</a>
+    </form>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

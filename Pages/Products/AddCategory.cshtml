@@ -1,0 +1,39 @@
+@page
+@model NextCommerce.Pages.Products.AddCategoryModel
+
+@{
+    ViewData["Title"] = "Add New Category";
+}
+
+<h2 class="text-center my-4">Add New Category</h2>
+
+<div class="container">
+    <form method="post" class="needs-validation" novalidate>
+        <div class="form-group">
+            <label asp-for="NewCategory.Name" class="font-weight-bold"></label>
+            <input asp-for="NewCategory.Name" class="form-control" placeholder="Enter category name" required />
+            <span asp-validation-for="NewCategory.Name" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block">Add Category</button>
+        <a href="/Products/AddProduct" class="btn btn-secondary btn-block">Back to Products</a>
+    </form>
+
+    <h3 class="mt-4">Existing Categories</h3>
+    <ul class="list-group">
+        @foreach (var category in Model.Categories)
+        {
+            <li class="list-group-item d-flex justify-content-between align-items-center">
+                @category.Name
+                <form method="post" asp-page-handler="Delete" class="mb-0">
+                    <input type="hidden" name="id" value="@category.Id" />
+                    <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                </form>
+            </li>
+        }
+    </ul>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+} 
