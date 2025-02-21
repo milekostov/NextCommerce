@@ -2,4 +2,61 @@
 @model NextCommerce.Pages.Products.ProductsModel
 
 <h2>Products</h2>
-<p>This is the Products page.</p> 
+<p>This is the Products page.</p>
+
+<input type="text" id="searchInput" placeholder="Search products..." onkeyup="searchProducts()" />
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Id</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Price</th>
+            <th>Date Created</th>
+            <th>Category</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody id="productTableBody">
+        @foreach (var product in Model.ProductList)
+        {
+            <tr>
+                <td>@product.Id</td>
+                <td>@product.Name</td>
+                <td>@product.Description</td>
+                <td>@product.Price.ToString("C")</td>
+                <td>@product.DateCreated.ToString("g")</td>
+                <td>@product.CategoryId</td>
+                <td>
+                    <form method="post" asp-page-handler="Delete">
+                        <input type="hidden" name="id" value="@product.Id" />
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<script>
+function searchProducts() {
+    var input = document.getElementById('searchInput');
+    var filter = input.value.toLowerCase();
+    var table = document.getElementById('productTableBody');
+    var tr = table.getElementsByTagName('tr');
+
+    for (var i = 0; i < tr.length; i++) {
+        var td = tr[i].getElementsByTagName('td');
+        var found = false;
+        for (var j = 0; j < td.length; j++) {
+            if (td[j]) {
+                if (td[j].innerHTML.toLowerCase().indexOf(filter) > -1) {
+                    found = true;
+                }
+            }
+        }
+        tr[i].style.display = found ? '' : 'none';
+    }
+}
+</script> 
