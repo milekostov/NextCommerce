@@ -50,6 +50,19 @@ namespace NextCommerce.Pages.Products
             }
         }
 
+        public IActionResult OnPostDelete(int id)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand("DELETE FROM Products WHERE Id = @Id", connection);
+                command.Parameters.AddWithValue("@Id", id);
+                command.ExecuteNonQuery();
+            }
+
+            return RedirectToPage();
+        }
+
         // Nested Product class
         public class Product
         {
