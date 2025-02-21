@@ -8,7 +8,7 @@
 <h2 class="text-center my-4">Add New Product</h2>
 
 <div class="container">
-    <form method="post" class="needs-validation" novalidate>
+    <form method="post" class="needs-validation" novalidate enctype="multipart/form-data">
         <div class="form-group">
             <label asp-for="NewProduct.Name" class="font-weight-bold"></label>
             <input asp-for="NewProduct.Name" class="form-control" placeholder="Enter product name" required />
@@ -37,6 +37,12 @@
                 }
             </select>
             <span asp-validation-for="NewProduct.CategoryId" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="ImageUpload" class="font-weight-bold">Upload Image</label>
+            <input type="file" id="ImageUpload" name="ImageUpload" accept="image/*" class="form-control" required />
+            <span asp-validation-for="ImageUpload" class="text-danger"></span>
         </div>
 
         <button type="submit" class="btn btn-primary btn-block">Add Product</button>

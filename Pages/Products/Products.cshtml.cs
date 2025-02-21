@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using Microsoft.Data.SqlClient;
 using System;
+using System.IO;
 
 namespace NextCommerce.Pages.Products
 {
@@ -34,7 +35,7 @@ namespace NextCommerce.Pages.Products
             {
                 connection.Open();
                 var command = new SqlCommand(
-                    "SELECT p.Id, p.Name, p.Description, p.Price, p.DateCreated, c.Name AS CategoryName " +
+                    "SELECT p.Id, p.Name, p.Description, p.Price, p.DateCreated, c.Name AS CategoryName, p.Image " +
                     "FROM Products p LEFT JOIN Category c ON p.CategoryId = c.Id", connection);
                 using (var reader = command.ExecuteReader())
                 {
@@ -48,7 +49,8 @@ namespace NextCommerce.Pages.Products
                             Description = reader.GetString(2),
                             Price = reader.GetDecimal(3),
                             DateCreated = reader.GetDateTime(4),
-                            CategoryName = reader.IsDBNull(5) ? null : reader.GetString(5) // Get category name
+                            CategoryName = reader.IsDBNull(5) ? null : reader.GetString(5), // Get category name
+                            Image = reader.IsDBNull(6) ? null : reader.GetString(6) // Get image path
                         });
                     }
                 }
@@ -78,12 +80,41 @@ namespace NextCommerce.Pages.Products
 
         public IActionResult OnPostDelete(int id)
         {
+            string imagePath = null;
+
+            // Retrieve the image path from the database
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand("SELECT Image FROM Products WHERE Id = @Id", connection);
+                command.Parameters.AddWithValue("@Id", id);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    if (reader.Read())
+                    {
+                        imagePath = reader.IsDBNull(0) ? null : reader.GetString(0); // Get the image path
+                    }
+                }
+            }
+
+            // Delete the product from the database
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 connection.Open();
                 var command = new SqlCommand("DELETE FROM Products WHERE Id = @Id", connection);
                 command.Parameters.AddWithValue("@Id", id);
                 command.ExecuteNonQuery();
+            }
+
+            // Delete the image file from the server
+            if (!string.IsNullOrEmpty(imagePath))
+            {
+                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imagePath.TrimStart('/'));
+                if (System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath); // Delete the file
+                }
             }
 
             return RedirectToPage();
@@ -116,6 +147,7 @@ namespace NextCommerce.Pages.Products
             public DateTime DateCreated { get; set; }
             public int? CategoryId { get; set; }
             public string CategoryName { get; set; } // New property for category name
+            public string Image { get; set; } // Add this line to include the Image property
         }
 
         // Nested Category class

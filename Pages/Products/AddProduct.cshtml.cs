@@ -2,8 +2,10 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Data.SqlClient;
+using System.IO;
 using System;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Http;
 
 namespace NextCommerce.Pages.Products
 {
@@ -12,7 +14,10 @@ namespace NextCommerce.Pages.Products
         private readonly IConfiguration _configuration;
 
         [BindProperty]
-        public Product NewProduct { get; set; } = new Product();
+        public NewProductModel NewProduct { get; set; } = new NewProductModel();
+
+        [BindProperty]
+        public IFormFile ImageUpload { get; set; }
 
         public List<Category> Categories { get; set; } = new List<Category>();
 
@@ -24,6 +29,56 @@ namespace NextCommerce.Pages.Products
         public void OnGet()
         {
             LoadCategories();
+        }
+
+        public IActionResult OnPost()
+        {
+            if (!ModelState.IsValid)
+            {
+                LoadCategories();
+                return Page();
+            }
+
+            string imagePath = null;
+
+            if (ImageUpload != null && ImageUpload.Length > 0)
+            {
+                // Generate a random file name
+                var randomFileName = Guid.NewGuid().ToString() + Path.GetExtension(ImageUpload.FileName);
+                var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "ImageUploads");
+                var filePath = Path.Combine(uploadsFolder, randomFileName);
+
+                // Ensure the directory exists
+                if (!Directory.Exists(uploadsFolder))
+                {
+                    Directory.CreateDirectory(uploadsFolder);
+                }
+
+                // Save the image
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    ImageUpload.CopyTo(stream);
+                }
+
+                imagePath = "/ImageUploads/" + randomFileName; // Store the relative path
+            }
+
+            // Save product details to the database
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand(
+                    "INSERT INTO Products (Name, Description, Price, CategoryId, Image) VALUES (@Name, @Description, @Price, @CategoryId, @Image)", 
+                    connection);
+                command.Parameters.AddWithValue("@Name", NewProduct.Name);
+                command.Parameters.AddWithValue("@Description", NewProduct.Description);
+                command.Parameters.AddWithValue("@Price", NewProduct.Price);
+                command.Parameters.AddWithValue("@CategoryId", NewProduct.CategoryId);
+                command.Parameters.AddWithValue("@Image", imagePath);
+                command.ExecuteNonQuery();
+            }
+
+            return RedirectToPage("/Products/Products");
         }
 
         private void LoadCategories()
@@ -47,38 +102,12 @@ namespace NextCommerce.Pages.Products
             }
         }
 
-        public IActionResult OnPost()
-        {
-            if (!ModelState.IsValid)
-            {
-                LoadCategories();
-                return Page();
-            }
-
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
-            {
-                connection.Open();
-                var command = new SqlCommand(
-                    "INSERT INTO Products (Name, Description, Price, CategoryId, DateCreated) VALUES (@Name, @Description, @Price, @CategoryId, GETDATE())", 
-                    connection);
-                
-                command.Parameters.AddWithValue("@Name", NewProduct.Name);
-                command.Parameters.AddWithValue("@Description", (object)NewProduct.Description ?? DBNull.Value);
-                command.Parameters.AddWithValue("@Price", NewProduct.Price);
-                command.Parameters.AddWithValue("@CategoryId", (object)NewProduct.CategoryId ?? DBNull.Value);
-
-                command.ExecuteNonQuery();
-            }
-
-            return RedirectToPage("/Products/Products");
-        }
-
-        public class Product
+        public class NewProductModel
         {
             public string Name { get; set; }
             public string Description { get; set; }
             public decimal Price { get; set; }
-            public int? CategoryId { get; set; }
+            public int CategoryId { get; set; }
         }
 
         public class Category

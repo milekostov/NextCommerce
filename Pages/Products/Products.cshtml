@@ -12,6 +12,7 @@
 <table class="table">
     <thead>
         <tr>
+            <th>Image</th>
             <th>Id</th>
             <th>Name</th>
             <th>Description</th>
@@ -25,6 +26,12 @@
         @foreach (var product in Model.ProductList)
         {
             <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(product.Image))
+                    {
+                        <img src="@product.Image" alt="Product Image" style="width: 100px; height: auto;" />
+                    }
+                </td>
                 <td>@product.Id</td>
                 <td>@product.Name</td>
                 <td>@product.Description</td>
