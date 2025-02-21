@@ -20,6 +20,8 @@ namespace NextCommerce.Pages.Products
 
         public List<Category> Categories { get; set; } = new List<Category>();
 
+        public string WarningMessage { get; set; }
+
         public IActionResult OnGet()
         {
             LoadCategories();
@@ -40,6 +42,13 @@ namespace NextCommerce.Pages.Products
 
         public IActionResult OnPostDelete(int id)
         {
+            if (HasProducts(id))
+            {
+                WarningMessage = "Cannot delete this category because it has associated products.";
+                LoadCategories();
+                return Page();
+            }
+
             DeleteCategory(id);
             return RedirectToPage("/Products/AddCategory");
         }
@@ -84,6 +93,18 @@ namespace NextCommerce.Pages.Products
                 var command = new SqlCommand("DELETE FROM Category WHERE Id = @Id", connection);
                 command.Parameters.AddWithValue("@Id", id);
                 command.ExecuteNonQuery();
+            }
+        }
+
+        private bool HasProducts(int categoryId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand("SELECT COUNT(*) FROM Products WHERE CategoryId = @CategoryId", connection);
+                command.Parameters.AddWithValue("@CategoryId", categoryId);
+                int productCount = (int)command.ExecuteScalar();
+                return productCount > 0;
             }
         }
 

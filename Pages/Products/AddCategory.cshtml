@@ -5,6 +5,13 @@
     ViewData["Title"] = "Add New Category";
 }
 
+@if (!string.IsNullOrEmpty(Model.WarningMessage))
+{
+    <div class="alert alert-warning" role="alert">
+        @Model.WarningMessage
+    </div>
+}
+
 <h2 class="text-center my-4">Add New Category</h2>
 
 <div class="container">
