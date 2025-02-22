@@ -9,63 +9,67 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = NextCommerce
 build_property.RootNamespace = NextCommerce
-build_property.ProjectDir = D:\VISUAL_STUDIO_PROJECTS\NextByte - NextCommerce\NextCommerce\
+build_property.ProjectDir = C:\Users\macabeast\Desktop\NextCommerce\NextCommerce\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = D:\VISUAL_STUDIO_PROJECTS\NextByte - NextCommerce\NextCommerce
+build_property.MSBuildProjectDirectory = C:\Users\macabeast\Desktop\NextCommerce\NextCommerce
 build_property._RazorSourceGeneratorDebug = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Error.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Error.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcRXJyb3IuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Index.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Index.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcSW5kZXguY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Login.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Login.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9naW4uY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Logout.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Logout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcTG9nb3V0LmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Privacy.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Privacy.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJpdmFjeS5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Products/AddCategory.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Products/AddCategory.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdHNcQWRkQ2F0ZWdvcnkuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Products/AddProduct.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Products/AddProduct.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdHNcQWRkUHJvZHVjdC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Products/Products.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Products/EditProduct.cshtml]
+build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdHNcRWRpdFByb2R1Y3QuY3NodG1s
+build_metadata.AdditionalFiles.CssScope = 
+
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Products/Products.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUHJvZHVjdHNcUHJvZHVjdHMuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/RegisterUser.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/RegisterUser.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcUmVnaXN0ZXJVc2VyLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Shared/_ValidationScriptsPartial.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Shared/_ValidationScriptsPartial.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9WYWxpZGF0aW9uU2NyaXB0c1BhcnRpYWwuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/_ViewImports.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/_ViewImports.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX1ZpZXdJbXBvcnRzLmNzaHRtbA==
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/_ViewStart.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/_ViewStart.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcX1ZpZXdTdGFydC5jc2h0bWw=
 build_metadata.AdditionalFiles.CssScope = 
 
-[D:/VISUAL_STUDIO_PROJECTS/NextByte - NextCommerce/NextCommerce/Pages/Shared/_Layout.cshtml]
+[C:/Users/macabeast/Desktop/NextCommerce/NextCommerce/Pages/Shared/_Layout.cshtml]
 build_metadata.AdditionalFiles.TargetPath = UGFnZXNcU2hhcmVkXF9MYXlvdXQuY3NodG1s
 build_metadata.AdditionalFiles.CssScope = b-liaosvxikh
