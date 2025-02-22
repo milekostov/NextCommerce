@@ -35,7 +35,7 @@ namespace NextCommerce.Pages.Orders
             {
                 connection.Open();
                 var command = new SqlCommand(
-                    @"SELECT Id, OrderDate, TotalAmount, Status, ShippingAddress 
+                    @"SELECT Id, OrderNumber, OrderDate, TotalAmount, Status, PaymentStatus, ShippingAddress 
                       FROM Orders 
                       WHERE UserId = @UserId 
                       ORDER BY OrderDate DESC",
@@ -49,23 +49,23 @@ namespace NextCommerce.Pages.Orders
                         Orders.Add(new OrderWithItems
                         {
                             Id = reader.GetInt32(0),
-                            OrderDate = reader.GetDateTime(1),
-                            TotalAmount = reader.GetDecimal(2),
-                            Status = reader.GetString(3),
-                            ShippingAddress = reader.GetString(4),
+                            OrderNumber = reader.GetString(1),
+                            OrderDate = reader.GetDateTime(2),
+                            TotalAmount = reader.GetDecimal(3),
+                            Status = reader.GetString(4),
+                            PaymentStatus = reader.GetString(5),
+                            ShippingAddress = reader.GetString(6),
                             Items = new List<OrderItemInfo>()
                         });
                     }
                 }
 
-                // Load items for each order
                 foreach (var order in Orders)
                 {
                     var itemsCommand = new SqlCommand(
-                        @"SELECT p.Name, oi.Quantity, oi.PriceAtTime 
-                          FROM OrderItems oi
-                          JOIN Products p ON oi.ProductId = p.Id
-                          WHERE oi.OrderId = @OrderId",
+                        @"SELECT ProductId, ProductName, CategoryId, CategoryName, Quantity, PriceAtTime 
+                          FROM OrderItems 
+                          WHERE OrderId = @OrderId",
                         connection);
                     itemsCommand.Parameters.AddWithValue("@OrderId", order.Id);
 
@@ -75,9 +75,12 @@ namespace NextCommerce.Pages.Orders
                         {
                             order.Items.Add(new OrderItemInfo
                             {
-                                ProductName = reader.GetString(0),
-                                Quantity = reader.GetInt32(1),
-                                Price = reader.GetDecimal(2)
+                                ProductId = reader.GetInt32(0),
+                                ProductName = reader.GetString(1),
+                                CategoryId = reader.GetInt32(2),
+                                CategoryName = reader.GetString(3),
+                                Quantity = reader.GetInt32(4),
+                                Price = reader.GetDecimal(5)
                             });
                         }
                     }
@@ -88,16 +91,21 @@ namespace NextCommerce.Pages.Orders
         public class OrderWithItems
         {
             public int Id { get; set; }
+            public string OrderNumber { get; set; }
             public DateTime OrderDate { get; set; }
             public decimal TotalAmount { get; set; }
             public string Status { get; set; }
+            public string PaymentStatus { get; set; }
             public string ShippingAddress { get; set; }
             public List<OrderItemInfo> Items { get; set; }
         }
 
         public class OrderItemInfo
         {
+            public int ProductId { get; set; }
             public string ProductName { get; set; }
+            public int CategoryId { get; set; }
+            public string CategoryName { get; set; }
             public int Quantity { get; set; }
             public decimal Price { get; set; }
         }

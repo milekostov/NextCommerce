@@ -19,7 +19,7 @@
         {
             <div class="card mb-4">
                 <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Order #@order.Id</h5>
+                    <h5 class="mb-0">Order #@order.OrderNumber</h5>
                     <span class="badge bg-@(order.Status == "Pending" ? "warning" : 
                                          order.Status == "Shipped" ? "info" : 
                                          order.Status == "Delivered" ? "success" : "secondary")">
@@ -31,6 +31,7 @@
                         <div class="col-md-6">
                             <p>Order Date: @order.OrderDate.ToString("g")</p>
                             <p>Total Amount: @order.TotalAmount.ToString("C")</p>
+                            <p>Payment Status: @order.PaymentStatus</p>
                         </div>
                         <div class="col-md-6">
                             <h6>Shipping Address</h6>
@@ -41,7 +42,9 @@
                     <table class="table">
                         <thead>
                             <tr>
+                                <th>Product ID</th>
                                 <th>Product</th>
+                                <th>Category</th>
                                 <th>Quantity</th>
                                 <th>Price</th>
                                 <th>Total</th>
@@ -51,7 +54,9 @@
                             @foreach (var item in order.Items)
                             {
                                 <tr>
+                                    <td>@item.ProductId</td>
                                     <td>@item.ProductName</td>
+                                    <td>@item.CategoryName</td>
                                     <td>@item.Quantity</td>
                                     <td>@item.Price.ToString("C")</td>
                                     <td>@((item.Price * item.Quantity).ToString("C"))</td>
