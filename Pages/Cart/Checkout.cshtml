@@ -1,0 +1,67 @@
+@page
+@model NextCommerce.Pages.Cart.CheckoutModel
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<div class="container">
+    <h2 class="text-center my-4">Checkout</h2>
+
+    @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+    {
+        <div class="alert alert-danger">
+            @Model.ErrorMessage
+        </div>
+    }
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Shipping Address</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        <div class="form-group mb-3">
+                            <label asp-for="ShippingAddress" class="form-label">Shipping Address</label>
+                            <textarea asp-for="ShippingAddress" class="form-control" rows="3" required></textarea>
+                            <span asp-validation-for="ShippingAddress" class="text-danger"></span>
+                        </div>
+
+                        <h5 class="mb-3">Order Summary</h5>
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Product</th>
+                                    <th>Quantity</th>
+                                    <th>Price</th>
+                                    <th>Total</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in Model.CartItems)
+                                {
+                                    <tr>
+                                        <td>@item.ProductName</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.Price.ToString("C")</td>
+                                        <td>@((item.Price * item.Quantity).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                                    <td><strong>@Model.CartTotal.ToString("C")</strong></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <button type="submit" class="btn btn-success">Place Order</button>
+                        <a href="/Cart/ViewCart" class="btn btn-secondary">Back to Cart</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div> 

@@ -1,0 +1,70 @@
+@page
+@model NextCommerce.Pages.Orders.OrderHistoryModel
+@{
+    ViewData["Title"] = "Order History";
+}
+
+<div class="container">
+    <h2 class="text-center my-4">Your Order History</h2>
+
+    @if (Model.Orders.Count == 0)
+    {
+        <div class="alert alert-info">
+            You haven't placed any orders yet.
+        </div>
+    }
+    else
+    {
+        @foreach (var order in Model.Orders)
+        {
+            <div class="card mb-4">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Order #@order.Id</h5>
+                    <span class="badge bg-@(order.Status == "Pending" ? "warning" : 
+                                         order.Status == "Shipped" ? "info" : 
+                                         order.Status == "Delivered" ? "success" : "secondary")">
+                        @order.Status
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <p>Order Date: @order.OrderDate.ToString("g")</p>
+                            <p>Total Amount: @order.TotalAmount.ToString("C")</p>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Shipping Address</h6>
+                            <p>@order.ShippingAddress</p>
+                        </div>
+                    </div>
+
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in order.Items)
+                            {
+                                <tr>
+                                    <td>@item.ProductName</td>
+                                    <td>@item.Quantity</td>
+                                    <td>@item.Price.ToString("C")</td>
+                                    <td>@((item.Price * item.Quantity).ToString("C"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+
+    <div class="text-center">
+        <a href="/Products/Products" class="btn btn-primary">Continue Shopping</a>
+    </div>
+</div> 

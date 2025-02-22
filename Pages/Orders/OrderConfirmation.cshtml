@@ -1,0 +1,60 @@
+@page "{orderId:int}"
+@model NextCommerce.Pages.Orders.OrderConfirmationModel
+@{
+    ViewData["Title"] = "Order Confirmation";
+}
+
+<div class="container">
+    <div class="text-center my-4">
+        <h2>Thank You for Your Order!</h2>
+        <p class="lead">Order #@Model.Order.Id has been successfully placed.</p>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Order Details</h5>
+        </div>
+        <div class="card-body">
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <h6>Order Information</h6>
+                    <p>Order Date: @Model.Order.OrderDate.ToString("g")</p>
+                    <p>Status: @Model.Order.Status</p>
+                    <p>Total Amount: @Model.Order.TotalAmount.ToString("C")</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Shipping Address</h6>
+                    <p>@Model.Order.ShippingAddress</p>
+                </div>
+            </div>
+
+            <h6>Ordered Items</h6>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.OrderItems)
+                    {
+                        <tr>
+                            <td>@item.ProductName</td>
+                            <td>@item.Quantity</td>
+                            <td>@item.Price.ToString("C")</td>
+                            <td>@((item.Price * item.Quantity).ToString("C"))</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <a href="/Orders/OrderHistory" class="btn btn-primary">View Order History</a>
+        <a href="/Products/Products" class="btn btn-secondary">Continue Shopping</a>
+    </div>
+</div> 

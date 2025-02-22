@@ -4,21 +4,16 @@ using Microsoft.Extensions.Configuration;
 
 namespace NextCommerce.Pages;
 
-public class IndexModel : PageModel
+public class IndexModel : BasePageModel
 {
-    private readonly ILogger<IndexModel> _logger;
-    private readonly IConfiguration _configuration;
-
-    public string Username { get; set; }
-
-    public IndexModel(ILogger<IndexModel> logger, IConfiguration configuration)
+    public IndexModel(IConfiguration configuration)
+        : base(configuration)
     {
-        _logger = logger;
-        _configuration = configuration;
     }
 
     public void OnGet()
     {
+        CheckAdminStatus();
         var userId = HttpContext.Session.GetInt32("LoggedUser");
         if (userId.HasValue)
         {
@@ -36,4 +31,6 @@ public class IndexModel : PageModel
             }
         }
     }
+
+    public string Username { get; set; }
 }
