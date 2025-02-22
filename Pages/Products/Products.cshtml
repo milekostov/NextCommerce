@@ -47,6 +47,17 @@
                             <button type="submit" class="btn btn-danger btn-sm">Delete</button>
                         </form>
                         <a href="/Products/EditProduct/@product.Id" class="btn btn-warning btn-sm">Edit</a>
+                        @if (product.Quantity > 0)
+                        {
+                            <form method="post" asp-page-handler="AddToCart" style="margin-left: 5px;">
+                                <input type="hidden" name="productId" value="@product.Id" />
+                                <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
+                            </form>
+                        }
+                        else
+                        {
+                            <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
+                        }
                     </div>
                 </td>
             </tr>

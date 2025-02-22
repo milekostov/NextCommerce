@@ -138,6 +138,52 @@ namespace NextCommerce.Pages.Products
             return RedirectToPage();
         }
 
+        public IActionResult OnPostAddToCart(int productId)
+        {
+            var userId = HttpContext.Session.GetInt32("LoggedUser");
+            if (!userId.HasValue)
+            {
+                return RedirectToPage("/Login");
+            }
+
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                
+                // First check if the item already exists in cart
+                var checkCommand = new SqlCommand(
+                    "SELECT COUNT(*) FROM Cart WHERE UserId = @UserId AND ProductId = @ProductId",
+                    connection);
+                checkCommand.Parameters.AddWithValue("@UserId", userId.Value);
+                checkCommand.Parameters.AddWithValue("@ProductId", productId);
+                int existingCount = (int)checkCommand.ExecuteScalar();
+
+                if (existingCount > 0)
+                {
+                    // Update quantity if item exists
+                    var updateCommand = new SqlCommand(
+                        "UPDATE Cart SET Quantity = Quantity + 1 WHERE UserId = @UserId AND ProductId = @ProductId",
+                        connection);
+                    updateCommand.Parameters.AddWithValue("@UserId", userId.Value);
+                    updateCommand.Parameters.AddWithValue("@ProductId", productId);
+                    updateCommand.ExecuteNonQuery();
+                }
+                else
+                {
+                    // Insert new item if it doesn't exist
+                    var insertCommand = new SqlCommand(
+                        "INSERT INTO Cart (UserId, ProductId, Quantity, DateAdded) VALUES (@UserId, @ProductId, 1, @DateAdded)",
+                        connection);
+                    insertCommand.Parameters.AddWithValue("@UserId", userId.Value);
+                    insertCommand.Parameters.AddWithValue("@ProductId", productId);
+                    insertCommand.Parameters.AddWithValue("@DateAdded", DateTime.Now);
+                    insertCommand.ExecuteNonQuery();
+                }
+            }
+
+            return RedirectToPage("/Cart/ViewCart");
+        }
+
         // Nested Product class
         public class Product
         {
