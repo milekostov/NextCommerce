@@ -56,8 +56,8 @@ namespace NextCommerce.Pages.Cart
 
         public IActionResult OnPostRemoveItem(int productId)
         {
-            var userId = HttpContext.Session.GetString("LoggedUser");
-            if (string.IsNullOrEmpty(userId))
+            var userId = HttpContext.Session.GetInt32("LoggedUser");
+            if (!userId.HasValue)
             {
                 return RedirectToPage("/Login");
             }
@@ -68,7 +68,7 @@ namespace NextCommerce.Pages.Cart
                 var command = new SqlCommand(
                     "DELETE FROM Cart WHERE UserId = @UserId AND ProductId = @ProductId",
                     connection);
-                command.Parameters.AddWithValue("@UserId", userId);
+                command.Parameters.AddWithValue("@UserId", userId.Value);
                 command.Parameters.AddWithValue("@ProductId", productId);
                 command.ExecuteNonQuery();
             }
