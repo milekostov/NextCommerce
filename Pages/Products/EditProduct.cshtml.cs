@@ -51,7 +51,7 @@ namespace NextCommerce.Pages.Products
             {
                 connection.Open();
                 var command = new SqlCommand(
-                    "SELECT Id, Name, Description, Price, CategoryId, Image " +
+                    "SELECT Id, Name, Description, Price, CategoryId, Image, Quantity " +
                     "FROM Products WHERE Id = @Id", connection);
                 command.Parameters.AddWithValue("@Id", id);
 
@@ -66,7 +66,8 @@ namespace NextCommerce.Pages.Products
                             Description = reader.GetString(2),
                             Price = reader.GetDecimal(3),
                             CategoryId = reader.GetInt32(4),
-                            Image = !reader.IsDBNull(5) ? reader.GetString(5) : null
+                            Image = !reader.IsDBNull(5) ? reader.GetString(5) : null,
+                            Quantity = reader.GetInt32(6)
                         };
                     }
                 }
@@ -101,13 +102,14 @@ namespace NextCommerce.Pages.Products
                 connection.Open();
                 var command = new SqlCommand(
                     "UPDATE Products SET Name = @Name, Description = @Description, " +
-                    "Price = @Price, CategoryId = @CategoryId WHERE Id = @Id", connection);
+                    "Price = @Price, CategoryId = @CategoryId, Quantity = @Quantity WHERE Id = @Id", connection);
 
                 command.Parameters.AddWithValue("@Id", Product.Id);
                 command.Parameters.AddWithValue("@Name", Product.Name);
                 command.Parameters.AddWithValue("@Description", Product.Description);
                 command.Parameters.AddWithValue("@Price", Product.Price);
                 command.Parameters.AddWithValue("@CategoryId", Product.CategoryId);
+                command.Parameters.AddWithValue("@Quantity", Product.Quantity);
 
                 command.ExecuteNonQuery();
             }
@@ -121,6 +123,7 @@ namespace NextCommerce.Pages.Products
             public decimal Price { get; set; }
             public int CategoryId { get; set; }
             public string Image { get; set; }
+            public int Quantity { get; set; }
         }
 
         public class Category

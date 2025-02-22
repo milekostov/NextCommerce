@@ -5,6 +5,10 @@
       "PackagePath": "staticwebassets\\NextCommerce.bundle.scp.css"
     },
     {
+      "Id": "C:\\Users\\macabeast\\Desktop\\NextCommerce\\NextCommerce\\wwwroot\\ImageUploads\\cf403314-5f2a-4084-acba-05616107399b.png",
+      "PackagePath": "staticwebassets\\ImageUploads\\cf403314-5f2a-4084-acba-05616107399b.png"
+    },
+    {
       "Id": "C:\\Users\\macabeast\\Desktop\\NextCommerce\\NextCommerce\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },

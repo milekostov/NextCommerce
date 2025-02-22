@@ -40,6 +40,12 @@
         </div>
 
         <div class="form-group">
+            <label asp-for="NewProduct.Quantity" class="font-weight-bold">Quantity</label>
+            <input asp-for="NewProduct.Quantity" class="form-control" type="number" min="0" required />
+            <span asp-validation-for="NewProduct.Quantity" class="text-danger"></span>
+        </div>
+
+        <div class="form-group">
             <label for="ImageUpload" class="font-weight-bold">Upload Image</label>
             <input type="file" id="ImageUpload" name="ImageUpload" accept="image/*" class="form-control" required />
             <span asp-validation-for="ImageUpload" class="text-danger"></span>

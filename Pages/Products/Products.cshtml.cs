@@ -35,7 +35,7 @@ namespace NextCommerce.Pages.Products
             {
                 connection.Open();
                 var command = new SqlCommand(
-                    "SELECT p.Id, p.Name, p.Description, p.Price, p.DateCreated, c.Name AS CategoryName, p.Image " +
+                    "SELECT p.Id, p.Name, p.Description, p.Price, p.DateCreated, c.Name AS CategoryName, p.Image, p.Quantity " +
                     "FROM Products p LEFT JOIN Category c ON p.CategoryId = c.Id", connection);
                 using (var reader = command.ExecuteReader())
                 {
@@ -50,7 +50,8 @@ namespace NextCommerce.Pages.Products
                             Price = reader.GetDecimal(3),
                             DateCreated = reader.GetDateTime(4),
                             CategoryName = reader.IsDBNull(5) ? null : reader.GetString(5), // Get category name
-                            Image = reader.IsDBNull(6) ? null : reader.GetString(6) // Get image path
+                            Image = reader.IsDBNull(6) ? null : reader.GetString(6), // Get image path
+                            Quantity = reader.GetInt32(7)  // Add this line
                         });
                     }
                 }
@@ -148,6 +149,7 @@ namespace NextCommerce.Pages.Products
             public int? CategoryId { get; set; }
             public string CategoryName { get; set; } // New property for category name
             public string Image { get; set; } // Add this line to include the Image property
+            public int Quantity { get; set; }  // Add this line
         }
 
         // Nested Category class

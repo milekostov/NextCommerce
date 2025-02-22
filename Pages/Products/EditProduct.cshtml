@@ -47,6 +47,12 @@
             <span asp-validation-for="Product.CategoryId" class="text-danger"></span>
         </div>
 
+        <div class="form-group mb-3">
+            <label asp-for="Product.Quantity" class="form-label">Quantity</label>
+            <input asp-for="Product.Quantity" class="form-control" type="number" min="0" required />
+            <span asp-validation-for="Product.Quantity" class="text-danger"></span>
+        </div>
+
         @if (!string.IsNullOrEmpty(Model.Product.Image))
         {
             <div class="mb-3">

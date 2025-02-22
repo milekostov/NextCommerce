@@ -68,13 +68,14 @@ namespace NextCommerce.Pages.Products
             {
                 connection.Open();
                 var command = new SqlCommand(
-                    "INSERT INTO Products (Name, Description, Price, CategoryId, Image) VALUES (@Name, @Description, @Price, @CategoryId, @Image)", 
+                    "INSERT INTO Products (Name, Description, Price, CategoryId, Image, Quantity) VALUES (@Name, @Description, @Price, @CategoryId, @Image, @Quantity)", 
                     connection);
                 command.Parameters.AddWithValue("@Name", NewProduct.Name);
                 command.Parameters.AddWithValue("@Description", NewProduct.Description);
                 command.Parameters.AddWithValue("@Price", NewProduct.Price);
                 command.Parameters.AddWithValue("@CategoryId", NewProduct.CategoryId);
                 command.Parameters.AddWithValue("@Image", imagePath);
+                command.Parameters.AddWithValue("@Quantity", NewProduct.Quantity);
                 command.ExecuteNonQuery();
             }
 
@@ -108,6 +109,7 @@ namespace NextCommerce.Pages.Products
             public string Description { get; set; }
             public decimal Price { get; set; }
             public int CategoryId { get; set; }
+            public int Quantity { get; set; }
         }
 
         public class Category
