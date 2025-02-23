@@ -13,7 +13,6 @@ public class IndexModel : BasePageModel
 
     public void OnGet()
     {
-        CheckAdminStatus();
         var userId = HttpContext.Session.GetInt32("LoggedUser");
         if (userId.HasValue)
         {
@@ -32,5 +31,5 @@ public class IndexModel : BasePageModel
         }
     }
 
-    public string Username { get; set; }
+    public string? Username { get; set; }
 }

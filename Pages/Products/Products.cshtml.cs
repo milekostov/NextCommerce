@@ -8,7 +8,7 @@ using System.IO;
 
 namespace NextCommerce.Pages.Products
 {
-    public class ProductsModel : PageModel
+    public class ProductsModel : BasePageModel
     {
         private readonly IConfiguration _configuration;
 
@@ -19,6 +19,7 @@ namespace NextCommerce.Pages.Products
         public Product NewProduct { get; set; } = new Product(); // Property to bind new product data
 
         public ProductsModel(IConfiguration configuration)
+            : base(configuration)
         {
             _configuration = configuration;
         }

@@ -33,12 +33,12 @@
                             <li class="nav-item">
                                 <a class="nav-link text-dark" asp-area="" asp-page="/Orders/OrderHistory">My Orders</a>
                             </li>
-                            @if (ViewData["IsAdmin"] != null && (bool)ViewData["IsAdmin"])
-                            {
-                                <li class="nav-item">
-                                    <a class="nav-link text-dark" asp-area="" asp-page="/Admin/OrderManagement">Manage Orders</a>
-                                </li>
-                            }
+                        }
+                        @if (ViewData["IsAdmin"] != null && (bool)ViewData["IsAdmin"])
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link text-dark" asp-area="" asp-page="/Admin/OrderManagement">Manage Orders</a>
+                            </li>
                         }
                     </ul>
                     <ul class="navbar-nav">

@@ -7,12 +7,13 @@ using System.Collections.Generic;
 
 namespace NextCommerce.Pages.Admin
 {
-    public class OrderManagementModel : PageModel
+    public class OrderManagementModel : BasePageModel
     {
         private readonly IConfiguration _configuration;
         public List<OrderInfo> Orders { get; set; } = new List<OrderInfo>();
 
         public OrderManagementModel(IConfiguration configuration)
+            : base(configuration)
         {
             _configuration = configuration;
         }

@@ -7,12 +7,13 @@ using System.Collections.Generic;
 
 namespace NextCommerce.Pages.Orders
 {
-    public class OrderHistoryModel : PageModel
+    public class OrderHistoryModel : BasePageModel
     {
         private readonly IConfiguration _configuration;
         public List<OrderWithItems> Orders { get; set; } = new List<OrderWithItems>();
 
         public OrderHistoryModel(IConfiguration configuration)
+            : base(configuration)
         {
             _configuration = configuration;
         }

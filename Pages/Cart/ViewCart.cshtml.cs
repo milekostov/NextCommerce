@@ -7,13 +7,11 @@ using System.Collections.Generic;
 
 namespace NextCommerce.Pages.Cart
 {
-    public class ViewCartModel : PageModel
+    public class ViewCartModel : BasePageModel
     {
-        private readonly IConfiguration _configuration;
-
         public ViewCartModel(IConfiguration configuration)
+            : base(configuration)
         {
-            _configuration = configuration;
         }
 
         public List<CartItem> CartItems { get; set; } = new List<CartItem>();
