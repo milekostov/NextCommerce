@@ -163,7 +163,7 @@ namespace NextCommerce.Pages.Products
             }
         }
 
-        public IActionResult OnPostAddReview(int productId, int rating, string comment)
+        public IActionResult OnPostAddReview(int productId, int rating, string? comment)
         {
             var userId = HttpContext.Session.GetInt32("LoggedUser");
             if (!userId.HasValue)
@@ -171,22 +171,67 @@ namespace NextCommerce.Pages.Products
                 return RedirectToPage("/Login");
             }
 
+            if (rating < 1 || rating > 5)
+            {
+                TempData["ErrorMessage"] = "Invalid rating value. Please select 1-5 stars.";
+                return RedirectToPage(new { id = productId });
+            }
+
             try
             {
                 using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
                 {
                     connection.Open();
-                    var command = new SqlCommand(
-                        @"INSERT INTO ProductReviews (ProductId, UserId, Rating, Comment) 
-                          VALUES (@ProductId, @UserId, @Rating, @Comment)",
-                        connection);
-                    command.Parameters.AddWithValue("@ProductId", productId);
-                    command.Parameters.AddWithValue("@UserId", userId.Value);
-                    command.Parameters.AddWithValue("@Rating", rating);
-                    command.Parameters.AddWithValue("@Comment", comment);
-                    command.ExecuteNonQuery();
+                    using (var transaction = connection.BeginTransaction())
+                    {
+                        try
+                        {
+                            // Check if user already reviewed
+                            var checkCommand = new SqlCommand(
+                                "SELECT COUNT(1) FROM ProductReviews WHERE ProductId = @ProductId AND UserId = @UserId",
+                                connection, transaction);
+                            checkCommand.Parameters.AddWithValue("@ProductId", productId);
+                            checkCommand.Parameters.AddWithValue("@UserId", userId.Value);
+                            
+                            if ((int)checkCommand.ExecuteScalar() > 0)
+                            {
+                                TempData["ErrorMessage"] = "You have already reviewed this product.";
+                                return RedirectToPage(new { id = productId });
+                            }
 
-                    TempData["SuccessMessage"] = "Review added successfully.";
+                            // Add the new review
+                            var command = new SqlCommand(
+                                @"INSERT INTO ProductReviews (ProductId, UserId, Rating, Comment) 
+                                  VALUES (@ProductId, @UserId, @Rating, @Comment)",
+                                connection, transaction);
+                            command.Parameters.AddWithValue("@ProductId", productId);
+                            command.Parameters.AddWithValue("@UserId", userId.Value);
+                            command.Parameters.AddWithValue("@Rating", rating);
+                            command.Parameters.AddWithValue("@Comment", (object?)comment ?? DBNull.Value);
+                            command.ExecuteNonQuery();
+
+                            // Update the average rating
+                            var updateAverageCommand = new SqlCommand(
+                                @"UPDATE Products 
+                                  SET AverageRating = (
+                                      SELECT AVG(CAST(Rating AS FLOAT))
+                                      FROM ProductReviews
+                                      WHERE ProductId = @ProductId
+                                  )
+                                  WHERE Id = @ProductId",
+                                connection, transaction);
+                            updateAverageCommand.Parameters.AddWithValue("@ProductId", productId);
+                            updateAverageCommand.ExecuteNonQuery();
+
+                            transaction.Commit();
+                            TempData["SuccessMessage"] = "Review added successfully.";
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            TempData["ErrorMessage"] = "Error adding review: " + ex.Message;
+                        }
+                    }
                 }
             }
             catch (Exception ex)
@@ -231,7 +276,7 @@ namespace NextCommerce.Pages.Products
                             DateCreated = reader.GetDateTime(6),
                             CategoryName = reader.IsDBNull(7) ? null : reader.GetString(7),
                             CategoryId = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
-                            AverageRating = reader.GetDouble(9),
+                            AverageRating = Math.Round(reader.GetDouble(9), 1),
                             ReviewCount = reader.GetInt32(10)
                         };
                     }
@@ -262,7 +307,7 @@ namespace NextCommerce.Pages.Products
                         {
                             Id = reader.GetInt32(0),
                             Rating = reader.GetInt32(1),
-                            Comment = reader.GetString(2),
+                            Comment = reader.IsDBNull(2) ? null : reader.GetString(2),
                             DateCreated = reader.GetDateTime(3),
                             UserName = reader.GetString(4)
                         });
@@ -293,7 +338,7 @@ namespace NextCommerce.Pages.Products
         {
             public int Id { get; set; }
             public int Rating { get; set; }
-            public string Comment { get; set; }
+            public string? Comment { get; set; }
             public DateTime DateCreated { get; set; }
             public string UserName { get; set; }
         }

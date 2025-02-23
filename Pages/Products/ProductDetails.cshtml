@@ -115,16 +115,21 @@
                             <div class="mb-3">
                                 <label class="form-label">Your Rating</label>
                                 <div class="star-rating">
-                                    @for (int i = 5; i >= 1; i--)
-                                    {
-                                        <input type="radio" name="rating" value="@i" id="star@i" required />
-                                        <label for="star@i"><i class="far fa-star"></i></label>
-                                    }
+                                    <input type="radio" name="rating" value="5" id="star5" />
+                                    <label for="star5"><i class="far fa-star"></i></label>
+                                    <input type="radio" name="rating" value="4" id="star4" />
+                                    <label for="star4"><i class="far fa-star"></i></label>
+                                    <input type="radio" name="rating" value="3" id="star3" />
+                                    <label for="star3"><i class="far fa-star"></i></label>
+                                    <input type="radio" name="rating" value="2" id="star2" />
+                                    <label for="star2"><i class="far fa-star"></i></label>
+                                    <input type="radio" name="rating" value="1" id="star1" required />
+                                    <label for="star1"><i class="far fa-star"></i></label>
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <label class="form-label">Your Review</label>
-                                <textarea name="comment" class="form-control" rows="3" required></textarea>
+                                <label class="form-label">Your Review (Optional)</label>
+                                <textarea name="comment" class="form-control" rows="3"></textarea>
                             </div>
                             <button type="submit" class="btn btn-primary">Submit Review</button>
                         </form>
@@ -183,6 +188,7 @@
             display: flex;
             flex-direction: row-reverse;
             justify-content: flex-end;
+            gap: 0.25rem;
         }
 
         .star-rating input {
@@ -192,17 +198,18 @@
         .star-rating label {
             cursor: pointer;
             font-size: 1.5rem;
-            padding: 0 0.2rem;
             color: #ffc107;
         }
 
-        .star-rating input:checked ~ label i.far.fa-star::before {
-            content: "\f005";
-            font-weight: 900;
+        .star-rating label:hover,
+        .star-rating label:hover ~ label,
+        .star-rating input:checked ~ label {
+            color: #ffc107;
         }
 
-        .star-rating label:hover i.far.fa-star::before,
-        .star-rating label:hover ~ label i.far.fa-star::before {
+        .star-rating label:hover i:before,
+        .star-rating label:hover ~ label i:before,
+        .star-rating input:checked ~ label i:before {
             content: "\f005";
             font-weight: 900;
         }
