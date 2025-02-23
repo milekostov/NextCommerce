@@ -84,7 +84,8 @@ namespace NextCommerce.Pages
                     command.ExecuteNonQuery();
                 }
 
-                return RedirectToPage("/Login");  // Redirect to login instead of index
+                TempData["SuccessMessage"] = "Registration successful! Please log in.";
+                return RedirectToPage("/Index");
             }
             catch (Exception ex)
             {
