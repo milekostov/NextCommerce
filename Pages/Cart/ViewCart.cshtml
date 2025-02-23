@@ -7,6 +7,27 @@
 <div class="container">
     <h2 class="text-center my-4">Shopping Cart</h2>
 
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger">
+            @TempData["ErrorMessage"]
+        </div>
+    }
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
+    @if (TempData["WarningMessage"] != null)
+    {
+        <div class="alert alert-warning">
+            @TempData["WarningMessage"]
+        </div>
+    }
+
     @if (Model.CartItems.Count == 0)
     {
         <div class="alert alert-info">
@@ -29,22 +50,34 @@
             <tbody>
                 @foreach (var item in Model.CartItems)
                 {
-                    <tr>
+                    <tr class="@(item.IsOutOfStock || item.IsOverstock ? "table-warning" : "")">
                         <td>
                             @if (!string.IsNullOrEmpty(item.Image))
                             {
                                 <img src="@item.Image" alt="@item.ProductName" style="max-width: 100px; height: auto;" />
                             }
                         </td>
-                        <td>@item.ProductName</td>
+                        <td>
+                            @item.ProductName
+                            @if (item.IsOutOfStock)
+                            {
+                                <div class="text-danger">Out of Stock</div>
+                            }
+                            else if (item.IsOverstock)
+                            {
+                                <div class="text-warning">Only @item.AvailableQuantity available</div>
+                            }
+                        </td>
                         <td>@item.Price.ToString("C")</td>
                         <td>
-                            <form method="post" asp-page-handler="UpdateQuantity" class="d-flex align-items-center">
+                            <form method="post" asp-page-handler="UpdateQuantity" class="d-flex align-items-center gap-2">
                                 <input type="hidden" name="productId" value="@item.ProductId" />
                                 <input type="number" name="quantity" value="@item.Quantity" 
                                        min="1" max="@item.AvailableQuantity" 
-                                       class="form-control" style="width: 80px" />
-                                <button type="submit" class="btn btn-sm btn-primary ml-2">Update</button>
+                                       class="form-control" style="width: 80px" 
+                                       @(item.IsOutOfStock ? "disabled" : "") />
+                                <button type="submit" class="btn btn-sm btn-primary" 
+                                        @(item.IsOutOfStock ? "disabled" : "")>Update</button>
                             </form>
                         </td>
                         <td>@((item.Price * item.Quantity).ToString("C"))</td>
@@ -68,7 +101,14 @@
 
         <div class="d-flex justify-content-between mt-4">
             <a href="/Products/Products" class="btn btn-secondary">Continue Shopping</a>
-            <a href="/Cart/Checkout" class="btn btn-success">Proceed to Checkout</a>
+            @if (!Model.CartItems.Any(i => i.IsOutOfStock || i.IsOverstock))
+            {
+                <a href="/Cart/Checkout" class="btn btn-success">Proceed to Checkout</a>
+            }
+            else
+            {
+                <button class="btn btn-success" disabled title="Please remove or update out of stock items">Proceed to Checkout</button>
+            }
         </div>
     }
 </div> 

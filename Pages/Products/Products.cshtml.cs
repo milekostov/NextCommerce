@@ -150,7 +150,7 @@ namespace NextCommerce.Pages.Products
                         {
                             // Check product availability
                             var checkCommand = new SqlCommand(
-                                "SELECT Quantity FROM Products WHERE Id = @ProductId",
+                                "SELECT Quantity FROM Products WHERE Id = @ProductId AND IsDeleted = 0",
                                 connection, transaction);
                             checkCommand.Parameters.AddWithValue("@ProductId", productId);
                             var availableQuantity = (int)checkCommand.ExecuteScalar();
@@ -161,7 +161,7 @@ namespace NextCommerce.Pages.Products
                                 return RedirectToPage();
                             }
 
-                            // Check if item already exists in cart
+                            // Check existing cart quantity
                             var cartCommand = new SqlCommand(
                                 "SELECT Quantity FROM Cart WHERE UserId = @UserId AND ProductId = @ProductId",
                                 connection, transaction);
@@ -171,6 +171,13 @@ namespace NextCommerce.Pages.Products
 
                             if (existingQuantity != null)
                             {
+                                // Check if total quantity would exceed available stock
+                                if ((int)existingQuantity + quantity > availableQuantity)
+                                {
+                                    TempData["ErrorMessage"] = "Cannot add more items. Would exceed available stock.";
+                                    return RedirectToPage();
+                                }
+
                                 // Update existing cart item
                                 var updateCommand = new SqlCommand(
                                     "UPDATE Cart SET Quantity = Quantity + @Quantity WHERE UserId = @UserId AND ProductId = @ProductId",
@@ -192,23 +199,13 @@ namespace NextCommerce.Pages.Products
                                 insertCommand.ExecuteNonQuery();
                             }
 
-                            // Update product quantity
-                            var updateProductCommand = new SqlCommand(
-                                "UPDATE Products SET Quantity = Quantity - @Quantity WHERE Id = @ProductId",
-                                connection, transaction);
-                            updateProductCommand.Parameters.AddWithValue("@ProductId", productId);
-                            updateProductCommand.Parameters.AddWithValue("@Quantity", quantity);
-                            updateProductCommand.ExecuteNonQuery();
-
                             transaction.Commit();
                             TempData["SuccessMessage"] = "Item added to cart successfully.";
-                            return RedirectToPage();
                         }
                         catch (Exception ex)
                         {
                             transaction.Rollback();
                             TempData["ErrorMessage"] = "Error adding item to cart: " + ex.Message;
-                            return RedirectToPage();
                         }
                     }
                 }
@@ -216,8 +213,9 @@ namespace NextCommerce.Pages.Products
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Error adding item to cart: " + ex.Message;
-                return RedirectToPage();
             }
+
+            return RedirectToPage();
         }
 
         // Nested Product class
