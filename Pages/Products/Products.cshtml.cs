@@ -80,43 +80,51 @@ namespace NextCommerce.Pages.Products
             }
         }
 
-        public IActionResult OnPostDelete(int id)
+        public IActionResult OnPostDelete(int productId)
         {
-            string imagePath = null;
-
-            // Retrieve the image path from the database
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            var userId = HttpContext.Session.GetInt32("LoggedUser");
+            if (!userId.HasValue || !IsAdmin)
             {
-                connection.Open();
-                var command = new SqlCommand("SELECT Image FROM Products WHERE Id = @Id", connection);
-                command.Parameters.AddWithValue("@Id", id);
+                return RedirectToPage("/Login");
+            }
 
-                using (var reader = command.ExecuteReader())
+            try
+            {
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
                 {
-                    if (reader.Read())
+                    connection.Open();
+                    using (var transaction = connection.BeginTransaction())
                     {
-                        imagePath = reader.IsDBNull(0) ? null : reader.GetString(0); // Get the image path
+                        try
+                        {
+                            // First delete from Cart if product exists there
+                            var deleteCartCommand = new SqlCommand(
+                                "DELETE FROM Cart WHERE ProductId = @ProductId",
+                                connection, transaction);
+                            deleteCartCommand.Parameters.AddWithValue("@ProductId", productId);
+                            deleteCartCommand.ExecuteNonQuery();
+
+                            // Then delete the product
+                            var deleteProductCommand = new SqlCommand(
+                                "DELETE FROM Products WHERE Id = @ProductId",
+                                connection, transaction);
+                            deleteProductCommand.Parameters.AddWithValue("@ProductId", productId);
+                            deleteProductCommand.ExecuteNonQuery();
+
+                            transaction.Commit();
+                            TempData["SuccessMessage"] = "Product deleted successfully.";
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            TempData["ErrorMessage"] = "Error deleting product: " + ex.Message;
+                        }
                     }
                 }
             }
-
-            // Delete the product from the database
-            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            catch (Exception ex)
             {
-                connection.Open();
-                var command = new SqlCommand("DELETE FROM Products WHERE Id = @Id", connection);
-                command.Parameters.AddWithValue("@Id", id);
-                command.ExecuteNonQuery();
-            }
-
-            // Delete the image file from the server
-            if (!string.IsNullOrEmpty(imagePath))
-            {
-                var fullPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", imagePath.TrimStart('/'));
-                if (System.IO.File.Exists(fullPath))
-                {
-                    System.IO.File.Delete(fullPath); // Delete the file
-                }
+                TempData["ErrorMessage"] = "Error deleting product: " + ex.Message;
             }
 
             return RedirectToPage();

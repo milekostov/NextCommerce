@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "0rIaqdfBOEroyf1k2Bat2dQuSPMC64xHGpPXFL/RPNo=",
+  "Hash": "pjlgE4S+jMW5gP+SZOR9xClfL+EvzhQOvW0ZV61BIMM=",
   "Source": "NextCommerce",
   "BasePath": "_content/NextCommerce",
   "Mode": "Default",
@@ -110,6 +110,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot\\ImageUploads\\cf403314-5f2a-4084-acba-05616107399b.png"
+    },
+    {
+      "Identity": "C:\\Users\\macabeast\\Desktop\\NextCommerce\\NextCommerce\\wwwroot\\ImageUploads\\e4813ca0-e4f9-48e6-a71d-142a598b4b63.png",
+      "SourceId": "NextCommerce",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\macabeast\\Desktop\\NextCommerce\\NextCommerce\\wwwroot\\",
+      "BasePath": "_content/NextCommerce",
+      "RelativePath": "ImageUploads/e4813ca0-e4f9-48e6-a71d-142a598b4b63.png",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\ImageUploads\\e4813ca0-e4f9-48e6-a71d-142a598b4b63.png"
     },
     {
       "Identity": "C:\\Users\\macabeast\\Desktop\\NextCommerce\\NextCommerce\\wwwroot\\js\\site.js",
