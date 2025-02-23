@@ -1,0 +1,94 @@
+@page "{orderId:int}"
+@model NextCommerce.Pages.Admin.OrderDetailsModel
+@{
+    ViewData["Title"] = "Order Details";
+}
+
+<div class="container">
+    <h2 class="text-center my-4">Order Details</h2>
+
+    @if (Model.Order != null)
+    {
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Order #@Model.Order.OrderNumber</h5>
+                <span class="badge bg-@(Model.Order.Status == "Pending" ? "warning" : 
+                                     Model.Order.Status == "Shipped" ? "info" : 
+                                     Model.Order.Status == "Delivered" ? "success" : "secondary")">
+                    @Model.Order.Status
+                </span>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <h6>Order Information</h6>
+                        <p>Customer: @Model.Order.Username</p>
+                        <p>Order Date: @Model.Order.OrderDate.ToString("g")</p>
+                        <p>Total Amount: @Model.Order.TotalAmount.ToString("C")</p>
+                        <p>Payment Status: @Model.Order.PaymentStatus</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Shipping Address</h6>
+                        <p>@Model.Order.ShippingAddress</p>
+                    </div>
+                </div>
+
+                <h6>Order Items</h6>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Product ID</th>
+                            <th>Product</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model.Order.Items)
+                        {
+                            <tr>
+                                <td>@item.ProductId</td>
+                                <td>@item.ProductName</td>
+                                <td>@item.CategoryName</td>
+                                <td>@item.Quantity</td>
+                                <td>@item.Price.ToString("C")</td>
+                                <td>@((item.Price * item.Quantity).ToString("C"))</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="5" class="text-end"><strong>Total:</strong></td>
+                            <td><strong>@Model.Order.TotalAmount.ToString("C")</strong></td>
+                        </tr>
+                    </tfoot>
+                </table>
+
+                <div class="mt-4">
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="orderId" value="@Model.Order.Id" />
+                        <select name="status" class="form-select d-inline-block w-auto me-2">
+                            <option value="Pending" selected="@(Model.Order.Status == "Pending")">Pending</option>
+                            <option value="Processing" selected="@(Model.Order.Status == "Processing")">Processing</option>
+                            <option value="Shipped" selected="@(Model.Order.Status == "Shipped")">Shipped</option>
+                            <option value="Delivered" selected="@(Model.Order.Status == "Delivered")">Delivered</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Update Status</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <a href="/Admin/OrderManagement" class="btn btn-secondary">Back to Orders</a>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-danger">
+            Order not found.
+        </div>
+    }
+</div> 
