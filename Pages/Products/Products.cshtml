@@ -33,7 +33,7 @@
         <input type="text" id="searchInput" class="form-control" placeholder="Search products..." onkeyup="searchProducts()">
     </div>
 
-    <table class="table">
+    <table class="table" id="productTable">
         <thead>
             <tr>
                 <th>Image</th>
@@ -141,33 +141,42 @@
     </div>
 </div>
 
-<script>
-function searchProducts() {
-    var input = document.getElementById('searchInput');
-    var filter = input.value.toLowerCase();
-    var table = document.getElementById('productTableBody');
-    var tr = table.getElementsByTagName('tr');
+@section Scripts {
+    <script>
+        function searchProducts() {
+            var input = document.getElementById("searchInput");
+            var filter = input.value.toLowerCase();
+            var tbody = document.getElementById("productTableBody");
+            var rows = tbody.getElementsByTagName("tr");
 
-    for (var i = 0; i < tr.length; i++) {
-        var td = tr[i].getElementsByTagName('td');
-        var found = false;
-        for (var j = 0; j < td.length; j++) {
-            if (td[j]) {
-                if (td[j].innerHTML.toLowerCase().indexOf(filter) > -1) {
-                    found = true;
+            for (var i = 0; i < rows.length; i++) {
+                var nameCell = rows[i].getElementsByTagName("td")[2];
+                var descriptionCell = rows[i].getElementsByTagName("td")[3];
+                var categoryCell = rows[i].getElementsByTagName("td")[6];
+                
+                if (nameCell && descriptionCell && categoryCell) {
+                    var name = nameCell.textContent || nameCell.innerText;
+                    var description = descriptionCell.textContent || descriptionCell.innerText;
+                    var category = categoryCell.textContent || categoryCell.innerText;
+                    
+                    if (name.toLowerCase().indexOf(filter) > -1 || 
+                        description.toLowerCase().indexOf(filter) > -1 ||
+                        category.toLowerCase().indexOf(filter) > -1) {
+                        rows[i].style.display = "";
+                    } else {
+                        rows[i].style.display = "none";
+                    }
                 }
             }
         }
-        tr[i].style.display = found ? '' : 'none';
-    }
-}
 
-function openEditModal(id, name, description, price, categoryId) {
-    $('#editProductId').val(id);
-    $('#editProductName').val(name);
-    $('#editProductDescription').val(description);
-    $('#editProductPrice').val(price);
-    $('#editProductCategoryId').val(categoryId);
-    $('#editProductModal').modal('show');
-}
-</script> 
+        function openEditModal(id, name, description, price, categoryId) {
+            $('#editProductId').val(id);
+            $('#editProductName').val(name);
+            $('#editProductDescription').val(description);
+            $('#editProductPrice').val(price);
+            $('#editProductCategoryId').val(categoryId);
+            $('#editProductModal').modal('show');
+        }
+    </script>
+} 
