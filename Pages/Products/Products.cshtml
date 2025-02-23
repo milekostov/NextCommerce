@@ -49,7 +49,7 @@
                     <td>
                         @if (!string.IsNullOrEmpty(product.Image))
                         {
-                            <img src="@product.Image" alt="Product Image" style="width: 100px; height: auto;" />
+                            <img src="@product.Image" alt="@product.Name" style="max-width: 100px; height: auto;" />
                         }
                     </td>
                     <td>@product.Id</td>
@@ -60,22 +60,31 @@
                     <td>@product.CategoryName</td>
                     <td>@product.Quantity</td>
                     <td>
-                        <div class="btn-group" role="group">
-                            <form method="post" asp-page-handler="Delete" style="margin-right: 5px;">
-                                <input type="hidden" name="id" value="@product.Id" />
-                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-                            </form>
-                            <a href="/Products/EditProduct/@product.Id" class="btn btn-warning btn-sm">Edit</a>
+                        <div class="d-flex gap-2">
                             @if (product.Quantity > 0)
                             {
-                                <form method="post" asp-page-handler="AddToCart" style="margin-left: 5px;">
+                                <form method="post" asp-page-handler="AddToCart" class="d-flex gap-2">
                                     <input type="hidden" name="productId" value="@product.Id" />
-                                    <button type="submit" class="btn btn-success btn-sm">Add to Cart</button>
+                                    <input type="number" name="quantity" value="1" 
+                                           min="1" max="@product.Quantity" 
+                                           class="form-control" style="width: 80px" />
+                                    <button type="submit" class="btn btn-primary btn-sm">Add to Cart</button>
                                 </form>
                             }
                             else
                             {
-                                <button class="btn btn-secondary btn-sm" disabled>Out of Stock</button>
+                                <span class="text-danger">Out of Stock</span>
+                            }
+                            @if (ViewData["IsAdmin"] != null && (bool)ViewData["IsAdmin"])
+                            {
+                                <a href="/Products/EditProduct/@product.Id" class="btn btn-warning btn-sm">Edit</a>
+                                <form method="post" asp-page-handler="Delete" style="display: inline;">
+                                    <input type="hidden" name="productId" value="@product.Id" />
+                                    <button type="submit" class="btn btn-danger btn-sm" 
+                                            onclick="return confirm('Are you sure you want to delete this product?')">
+                                        Delete
+                                    </button>
+                                </form>
                             }
                         </div>
                     </td>
