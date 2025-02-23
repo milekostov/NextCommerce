@@ -71,20 +71,28 @@ namespace NextCommerce.Pages.Cart
                 {
                     try
                     {
-                        // Debug log
-                        Console.WriteLine("Starting order creation...");
+                        Console.WriteLine("Starting order creation..."); // Debug log
 
                         // Create the order
                         int orderId;
+                        var orderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{new Random().Next(1000):D3}";
+                        
+                        // Debug log the SQL and values
+                        Console.WriteLine($"Order Number: {orderNumber}");
+                        Console.WriteLine($"Total Amount: {CartTotal}");
+                        Console.WriteLine($"Shipping Address: {ShippingAddress}");
+
                         using (var command = new SqlCommand(
-                            @"INSERT INTO Orders (UserId, OrderDate, TotalAmount, Status, ShippingAddress) 
-                              VALUES (@UserId, @OrderDate, @TotalAmount, @Status, @ShippingAddress);
+                            @"INSERT INTO Orders (UserId, OrderNumber, OrderDate, TotalAmount, Status, PaymentStatus, ShippingAddress) 
+                              VALUES (@UserId, @OrderNumber, @OrderDate, @TotalAmount, @Status, @PaymentStatus, @ShippingAddress);
                               SELECT SCOPE_IDENTITY();", connection, transaction))
                         {
                             command.Parameters.AddWithValue("@UserId", userId.Value);
+                            command.Parameters.AddWithValue("@OrderNumber", orderNumber);
                             command.Parameters.AddWithValue("@OrderDate", DateTime.Now);
                             command.Parameters.AddWithValue("@TotalAmount", CartTotal);
                             command.Parameters.AddWithValue("@Status", "Pending");
+                            command.Parameters.AddWithValue("@PaymentStatus", "Pending");
                             command.Parameters.AddWithValue("@ShippingAddress", ShippingAddress);
 
                             orderId = Convert.ToInt32(command.ExecuteScalar());
@@ -94,43 +102,35 @@ namespace NextCommerce.Pages.Cart
                         // Add order items
                         foreach (var item in CartItems)
                         {
+                            Console.WriteLine($"Processing item: {item.ProductName}"); // Debug log
+
+                            // Get category information with fallback to "Uncategorized"
+                            int categoryId = 1; // Default to first category
+                            string categoryName = "Uncategorized";
+                            using (var categoryCommand = new SqlCommand(
+                                @"SELECT ISNULL(c.Id, 1), ISNULL(c.Name, 'Uncategorized')
+                                  FROM Products p
+                                  LEFT JOIN Category c ON p.CategoryId = c.Id
+                                  WHERE p.Id = @ProductId",
+                                connection, transaction))
+                            {
+                                categoryCommand.Parameters.AddWithValue("@ProductId", item.ProductId);
+                                using (var reader = categoryCommand.ExecuteReader())
+                                {
+                                    if (reader.Read())
+                                    {
+                                        categoryId = reader.GetInt32(0);
+                                        categoryName = reader.GetString(1);
+                                        Console.WriteLine($"Found category: {categoryName} (ID: {categoryId})"); // Debug log
+                                    }
+                                }
+                            }
+
                             using (var command = new SqlCommand(
                                 @"INSERT INTO OrderItems (OrderId, ProductId, CategoryId, ProductName, CategoryName, Quantity, PriceAtTime) 
                                   VALUES (@OrderId, @ProductId, @CategoryId, @ProductName, @CategoryName, @Quantity, @Price)", 
                                 connection, transaction))
                             {
-                                // Generate unique order number (e.g., ORD-20240217-001)
-                                var orderNumber = $"ORD-{DateTime.Now:yyyyMMdd}-{orderId:D3}";
-
-                                // Update Orders table with order number
-                                using (var updateOrderCommand = new SqlCommand(
-                                    "UPDATE Orders SET OrderNumber = @OrderNumber WHERE Id = @OrderId",
-                                    connection, transaction))
-                                {
-                                    updateOrderCommand.Parameters.AddWithValue("@OrderNumber", orderNumber);
-                                    updateOrderCommand.Parameters.AddWithValue("@OrderId", orderId);
-                                    updateOrderCommand.ExecuteNonQuery();
-                                }
-
-                                // Get category information
-                                int categoryId;
-                                string categoryName;
-                                using (var categoryCommand = new SqlCommand(
-                                    @"SELECT c.Id, c.Name 
-                                      FROM Categories c 
-                                      JOIN Products p ON p.CategoryId = c.Id 
-                                      WHERE p.Id = @ProductId",
-                                    connection, transaction))
-                                {
-                                    categoryCommand.Parameters.AddWithValue("@ProductId", item.ProductId);
-                                    using (var reader = categoryCommand.ExecuteReader())
-                                    {
-                                        reader.Read();
-                                        categoryId = reader.GetInt32(0);
-                                        categoryName = reader.GetString(1);
-                                    }
-                                }
-
                                 command.Parameters.AddWithValue("@OrderId", orderId);
                                 command.Parameters.AddWithValue("@ProductId", item.ProductId);
                                 command.Parameters.AddWithValue("@CategoryId", categoryId);
@@ -139,6 +139,7 @@ namespace NextCommerce.Pages.Cart
                                 command.Parameters.AddWithValue("@Quantity", item.Quantity);
                                 command.Parameters.AddWithValue("@Price", item.Price);
                                 command.ExecuteNonQuery();
+                                Console.WriteLine($"Added order item for {item.ProductName}"); // Debug log
                             }
 
                             // Update product quantity
@@ -150,6 +151,7 @@ namespace NextCommerce.Pages.Cart
                                 command.Parameters.AddWithValue("@ProductId", item.ProductId);
                                 command.Parameters.AddWithValue("@Quantity", item.Quantity);
                                 command.ExecuteNonQuery();
+                                Console.WriteLine($"Updated quantity for product {item.ProductId}"); // Debug log
                             }
                         }
 
@@ -164,13 +166,14 @@ namespace NextCommerce.Pages.Cart
 
                         transaction.Commit();
                         Console.WriteLine("Transaction committed successfully"); // Debug log
-                        return RedirectToPage("/Orders/OrderHistory");
+                        return RedirectToPage("/Orders/OrderConfirmation", new { orderId = orderId });
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Error during checkout: {ex.Message}"); // Debug log
                         transaction.Rollback();
-                        ErrorMessage = "An error occurred while processing your order. Please try again.";
+                        Console.WriteLine($"Error during checkout: {ex.Message}"); // Debug log
+                        Console.WriteLine($"Stack trace: {ex.StackTrace}"); // Debug log
+                        ErrorMessage = $"An error occurred while processing your order: {ex.Message}";
                         return Page();
                     }
                 }
