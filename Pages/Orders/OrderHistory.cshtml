@@ -22,7 +22,8 @@
                     <h5 class="mb-0">Order #@order.OrderNumber</h5>
                     <span class="badge bg-@(order.Status == "Pending" ? "warning" : 
                                          order.Status == "Shipped" ? "info" : 
-                                         order.Status == "Delivered" ? "success" : "secondary")">
+                                         order.Status == "Delivered" ? "success" : 
+                                         order.Status == "Canceled" ? "danger" : "secondary")">
                         @order.Status
                     </span>
                 </div>
