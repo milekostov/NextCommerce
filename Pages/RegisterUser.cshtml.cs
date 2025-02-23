@@ -34,6 +34,21 @@ namespace NextCommerce.Pages
 
             try
             {
+                // Check if username already exists
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    connection.Open();
+                    var checkCommand = new SqlCommand("SELECT COUNT(*) FROM Users WHERE Username = @Username", connection);
+                    checkCommand.Parameters.AddWithValue("@Username", Username);
+                    int userCount = (int)checkCommand.ExecuteScalar();
+
+                    if (userCount > 0)
+                    {
+                        ErrorMessage = "Username already exists";
+                        return Page();
+                    }
+                }
+
                 // Generate a random salt
                 byte[] salt = new byte[32];
                 using (var rng = RandomNumberGenerator.Create())
@@ -55,13 +70,12 @@ namespace NextCommerce.Pages
                 string saltString = Convert.ToBase64String(salt);
 
                 // Save to database
-                var connectionString = _configuration.GetConnectionString("DefaultConnection");
-                using (var connection = new SqlConnection(connectionString))
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
                 {
                     connection.Open();
                     var command = new SqlCommand(
-                        "INSERT INTO Users (Username, PasswordHash, PasswordSalt, DateCreated) " +
-                        "VALUES (@Username, @PasswordHash, @PasswordSalt, GETDATE())", connection);
+                        @"INSERT INTO Users (Username, PasswordHash, PasswordSalt, IsAdmin, DateCreated) 
+                          VALUES (@Username, @PasswordHash, @PasswordSalt, 0, GETDATE())", connection);
                     
                     command.Parameters.AddWithValue("@Username", Username);
                     command.Parameters.AddWithValue("@PasswordHash", hashString);
@@ -70,23 +84,11 @@ namespace NextCommerce.Pages
                     command.ExecuteNonQuery();
                 }
 
-                return RedirectToPage("Index");
+                return RedirectToPage("/Login");  // Redirect to login instead of index
             }
-            catch (SqlException ex)
+            catch (Exception ex)
             {
-                if (ex.Number == 2627)  // Unique constraint error
-                {
-                    ErrorMessage = "Username already exists";
-                }
-                else
-                {
-                    ErrorMessage = "Database error occurred";
-                }
-                return Page();
-            }
-            catch (Exception)
-            {
-                ErrorMessage = "An error occurred during registration";
+                ErrorMessage = "An error occurred during registration. Please try again.";
                 return Page();
             }
         }
