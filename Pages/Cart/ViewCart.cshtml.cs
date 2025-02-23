@@ -83,7 +83,7 @@ namespace NextCommerce.Pages.Cart
                     @"SELECT c.ProductId, p.Name, p.Price, c.Quantity, p.Quantity as AvailableQuantity, p.Image 
                     FROM Cart c 
                     JOIN Products p ON c.ProductId = p.Id 
-                    WHERE c.UserId = @UserId",
+                    WHERE c.UserId = @UserId AND p.IsDeleted = 0",
                     connection);
                 command.Parameters.AddWithValue("@UserId", userId);
 
