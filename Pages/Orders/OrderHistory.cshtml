@@ -35,7 +35,7 @@
                             <p>Payment Status: @order.PaymentStatus</p>
                         </div>
                         <div class="col-md-6">
-                            <h6>Shipping Address</h6>
+                            <p>Shipping Address:</p>
                             <p>@order.ShippingAddress</p>
                         </div>
                     </div>
@@ -43,7 +43,7 @@
                     <table class="table">
                         <thead>
                             <tr>
-                                <th>Product ID</th>
+                                <th>Image</th>
                                 <th>Product</th>
                                 <th>Category</th>
                                 <th>Quantity</th>
@@ -55,7 +55,12 @@
                             @foreach (var item in order.Items)
                             {
                                 <tr>
-                                    <td>@item.ProductId</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.Image))
+                                        {
+                                            <img src="@item.Image" alt="@item.ProductName" style="max-width: 100px; height: auto;" />
+                                        }
+                                    </td>
                                     <td>@item.ProductName</td>
                                     <td>@item.CategoryName</td>
                                     <td>@item.Quantity</td>

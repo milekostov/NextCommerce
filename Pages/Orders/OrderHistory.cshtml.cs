@@ -36,10 +36,10 @@ namespace NextCommerce.Pages.Orders
             {
                 connection.Open();
                 var command = new SqlCommand(
-                    @"SELECT Id, OrderNumber, OrderDate, TotalAmount, Status, PaymentStatus, ShippingAddress 
-                      FROM Orders 
-                      WHERE UserId = @UserId 
-                      ORDER BY OrderDate DESC",
+                    @"SELECT o.Id, o.OrderNumber, o.OrderDate, o.TotalAmount, o.Status, o.PaymentStatus, o.ShippingAddress 
+                      FROM Orders o 
+                      WHERE o.UserId = @UserId 
+                      ORDER BY o.OrderDate DESC",
                     connection);
                 command.Parameters.AddWithValue("@UserId", userId);
 
@@ -47,7 +47,7 @@ namespace NextCommerce.Pages.Orders
                 {
                     while (reader.Read())
                     {
-                        Orders.Add(new OrderWithItems
+                        var order = new OrderWithItems
                         {
                             Id = reader.GetInt32(0),
                             OrderNumber = reader.GetString(1),
@@ -57,17 +57,18 @@ namespace NextCommerce.Pages.Orders
                             PaymentStatus = reader.GetString(5),
                             ShippingAddress = reader.GetString(6),
                             Items = new List<OrderItemInfo>()
-                        });
+                        };
+                        Orders.Add(order);
                     }
                 }
 
                 foreach (var order in Orders)
                 {
                     var itemsCommand = new SqlCommand(
-                        @"SELECT ProductId, ProductName, CategoryId, CategoryName, Quantity, PriceAtTime 
-                          FROM OrderItems 
-                          WHERE OrderId = @OrderId",
-                        connection);
+                        @"SELECT oi.ProductId, oi.ProductName, oi.CategoryId, oi.CategoryName, oi.Quantity, oi.PriceAtTime as Price, p.Image
+                        FROM OrderItems oi
+                        LEFT JOIN Products p ON oi.ProductId = p.Id
+                        WHERE oi.OrderId = @OrderId", connection);
                     itemsCommand.Parameters.AddWithValue("@OrderId", order.Id);
 
                     using (var reader = itemsCommand.ExecuteReader())
@@ -81,7 +82,8 @@ namespace NextCommerce.Pages.Orders
                                 CategoryId = reader.GetInt32(2),
                                 CategoryName = reader.GetString(3),
                                 Quantity = reader.GetInt32(4),
-                                Price = reader.GetDecimal(5)
+                                Price = reader.GetDecimal(5),
+                                Image = reader.IsDBNull(6) ? null : reader.GetString(6)
                             });
                         }
                     }
@@ -109,6 +111,7 @@ namespace NextCommerce.Pages.Orders
             public string CategoryName { get; set; }
             public int Quantity { get; set; }
             public decimal Price { get; set; }
+            public string Image { get; set; }
         }
     }
 } 

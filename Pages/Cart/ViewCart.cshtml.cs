@@ -80,7 +80,7 @@ namespace NextCommerce.Pages.Cart
             {
                 connection.Open();
                 var command = new SqlCommand(
-                    @"SELECT c.ProductId, p.Name, p.Price, c.Quantity, p.Quantity as AvailableQuantity 
+                    @"SELECT c.ProductId, p.Name, p.Price, c.Quantity, p.Quantity as AvailableQuantity, p.Image 
                     FROM Cart c 
                     JOIN Products p ON c.ProductId = p.Id 
                     WHERE c.UserId = @UserId",
@@ -98,7 +98,8 @@ namespace NextCommerce.Pages.Cart
                             ProductName = reader.GetString(1),
                             Price = reader.GetDecimal(2),
                             Quantity = reader.GetInt32(3),
-                            AvailableQuantity = reader.GetInt32(4)
+                            AvailableQuantity = reader.GetInt32(4),
+                            Image = reader.IsDBNull(5) ? null : reader.GetString(5)
                         });
                     }
                 }
@@ -112,6 +113,7 @@ namespace NextCommerce.Pages.Cart
             public decimal Price { get; set; }
             public int Quantity { get; set; }
             public int AvailableQuantity { get; set; }
+            public string Image { get; set; }
         }
     }
 }
