@@ -21,12 +21,17 @@
         </div>
     }
 
-    <p>This is the Products page.</p>
+    @if (ViewData["IsAdmin"] != null && (bool)ViewData["IsAdmin"])
+    {
+        <div class="mb-3 d-flex gap-2">
+            <a href="/Products/AddProduct" class="btn btn-primary">Add New Product</a>
+            <a href="/Products/AddCategory" class="btn btn-success">Add New Category</a>
+        </div>
+    }
 
-    <!-- Add Product Button -->
-    <a href="/Products/AddProduct" class="btn btn-primary">Add New Product</a>
-
-    <input type="text" id="searchInput" placeholder="Search products..." onkeyup="searchProducts()" />
+    <div class="mb-3">
+        <input type="text" id="searchInput" class="form-control" placeholder="Search products..." onkeyup="searchProducts()">
+    </div>
 
     <table class="table">
         <thead>
