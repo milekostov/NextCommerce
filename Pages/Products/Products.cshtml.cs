@@ -138,7 +138,7 @@ namespace NextCommerce.Pages.Products
             return RedirectToPage();
         }
 
-        public IActionResult OnPostAddToCart(int productId)
+        public IActionResult OnPostAddToCart(int productId, int quantity = 1)
         {
             var userId = HttpContext.Session.GetInt32("LoggedUser");
             if (!userId.HasValue)
@@ -149,39 +149,89 @@ namespace NextCommerce.Pages.Products
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
             {
                 connection.Open();
-                
-                // First check if the item already exists in cart
-                var checkCommand = new SqlCommand(
-                    "SELECT COUNT(*) FROM Cart WHERE UserId = @UserId AND ProductId = @ProductId",
-                    connection);
-                checkCommand.Parameters.AddWithValue("@UserId", userId.Value);
-                checkCommand.Parameters.AddWithValue("@ProductId", productId);
-                int existingCount = (int)checkCommand.ExecuteScalar();
+                using (var transaction = connection.BeginTransaction())
+                {
+                    try
+                    {
+                        // First, check if the product exists and get its available quantity
+                        int availableQuantity;
+                        using (var command = new SqlCommand(
+                            "SELECT Quantity FROM Products WHERE Id = @ProductId",
+                            connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@ProductId", productId);
+                            var result = command.ExecuteScalar();
+                            if (result == null)
+                            {
+                                TempData["ErrorMessage"] = "Product not found.";
+                                return RedirectToPage();
+                            }
+                            availableQuantity = Convert.ToInt32(result);
+                        }
 
-                if (existingCount > 0)
-                {
-                    // Update quantity if item exists
-                    var updateCommand = new SqlCommand(
-                        "UPDATE Cart SET Quantity = Quantity + 1 WHERE UserId = @UserId AND ProductId = @ProductId",
-                        connection);
-                    updateCommand.Parameters.AddWithValue("@UserId", userId.Value);
-                    updateCommand.Parameters.AddWithValue("@ProductId", productId);
-                    updateCommand.ExecuteNonQuery();
-                }
-                else
-                {
-                    // Insert new item if it doesn't exist
-                    var insertCommand = new SqlCommand(
-                        "INSERT INTO Cart (UserId, ProductId, Quantity, DateAdded) VALUES (@UserId, @ProductId, 1, @DateAdded)",
-                        connection);
-                    insertCommand.Parameters.AddWithValue("@UserId", userId.Value);
-                    insertCommand.Parameters.AddWithValue("@ProductId", productId);
-                    insertCommand.Parameters.AddWithValue("@DateAdded", DateTime.Now);
-                    insertCommand.ExecuteNonQuery();
+                        // Check current quantity in cart
+                        int currentCartQuantity = 0;
+                        using (var command = new SqlCommand(
+                            "SELECT Quantity FROM Cart WHERE UserId = @UserId AND ProductId = @ProductId",
+                            connection, transaction))
+                        {
+                            command.Parameters.AddWithValue("@UserId", userId.Value);
+                            command.Parameters.AddWithValue("@ProductId", productId);
+                            var result = command.ExecuteScalar();
+                            if (result != null)
+                            {
+                                currentCartQuantity = Convert.ToInt32(result);
+                            }
+                        }
+
+                        // Calculate total requested quantity
+                        int totalRequestedQuantity = currentCartQuantity + quantity;
+
+                        // Validate against available quantity
+                        if (totalRequestedQuantity > availableQuantity)
+                        {
+                            TempData["ErrorMessage"] = $"Cannot add {quantity} items. Only {availableQuantity - currentCartQuantity} items available.";
+                            return RedirectToPage();
+                        }
+
+                        // If item exists in cart, update quantity
+                        if (currentCartQuantity > 0)
+                        {
+                            using (var command = new SqlCommand(
+                                "UPDATE Cart SET Quantity = @Quantity WHERE UserId = @UserId AND ProductId = @ProductId",
+                                connection, transaction))
+                            {
+                                command.Parameters.AddWithValue("@UserId", userId.Value);
+                                command.Parameters.AddWithValue("@ProductId", productId);
+                                command.Parameters.AddWithValue("@Quantity", totalRequestedQuantity);
+                                command.ExecuteNonQuery();
+                            }
+                        }
+                        else // If item doesn't exist in cart, insert new record
+                        {
+                            using (var command = new SqlCommand(
+                                "INSERT INTO Cart (UserId, ProductId, Quantity) VALUES (@UserId, @ProductId, @Quantity)",
+                                connection, transaction))
+                            {
+                                command.Parameters.AddWithValue("@UserId", userId.Value);
+                                command.Parameters.AddWithValue("@ProductId", productId);
+                                command.Parameters.AddWithValue("@Quantity", quantity);
+                                command.ExecuteNonQuery();
+                            }
+                        }
+
+                        transaction.Commit();
+                        TempData["SuccessMessage"] = "Item added to cart successfully.";
+                        return RedirectToPage();
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        TempData["ErrorMessage"] = "Error adding item to cart: " + ex.Message;
+                        return RedirectToPage();
+                    }
                 }
             }
-
-            return RedirectToPage("/Cart/ViewCart");
         }
 
         // Nested Product class
