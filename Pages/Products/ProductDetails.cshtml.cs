@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
 
 namespace NextCommerce.Pages.Products
 {
@@ -9,13 +10,18 @@ namespace NextCommerce.Pages.Products
     {
         public ProductDetailsModel(IConfiguration configuration) : base(configuration)
         {
+            Reviews = new List<ReviewInfo>();
         }
 
         public ProductInfo Product { get; set; }
+        public List<ReviewInfo> Reviews { get; set; }
+        public bool HasUserReviewed { get; set; }
 
         public void OnGet(int id)
         {
             LoadProduct(id);
+            LoadReviews(id);
+            CheckUserReview(id);
         }
 
         public IActionResult OnPostAddToCart(int productId, int quantity)
@@ -157,6 +163,40 @@ namespace NextCommerce.Pages.Products
             }
         }
 
+        public IActionResult OnPostAddReview(int productId, int rating, string comment)
+        {
+            var userId = HttpContext.Session.GetInt32("LoggedUser");
+            if (!userId.HasValue)
+            {
+                return RedirectToPage("/Login");
+            }
+
+            try
+            {
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    connection.Open();
+                    var command = new SqlCommand(
+                        @"INSERT INTO ProductReviews (ProductId, UserId, Rating, Comment) 
+                          VALUES (@ProductId, @UserId, @Rating, @Comment)",
+                        connection);
+                    command.Parameters.AddWithValue("@ProductId", productId);
+                    command.Parameters.AddWithValue("@UserId", userId.Value);
+                    command.Parameters.AddWithValue("@Rating", rating);
+                    command.Parameters.AddWithValue("@Comment", comment);
+                    command.ExecuteNonQuery();
+
+                    TempData["SuccessMessage"] = "Review added successfully.";
+                }
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Error adding review: " + ex.Message;
+            }
+
+            return RedirectToPage(new { id = productId });
+        }
+
         private void LoadProduct(int id)
         {
             using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
@@ -164,10 +204,16 @@ namespace NextCommerce.Pages.Products
                 connection.Open();
                 var command = new SqlCommand(
                     @"SELECT p.Id, p.Name, p.Description, p.Price, p.Quantity, p.Image, 
-                             p.DateCreated, c.Name as CategoryName, c.Id as CategoryId
+                             p.DateCreated, c.Name as CategoryName, c.Id as CategoryId,
+                             ISNULL(AVG(CAST(pr.Rating as FLOAT)), 0) as AverageRating,
+                             COUNT(pr.Id) as ReviewCount
                       FROM Products p
                       LEFT JOIN Category c ON p.CategoryId = c.Id
-                      WHERE p.Id = @ProductId AND p.IsDeleted = 0", connection);
+                      LEFT JOIN ProductReviews pr ON p.Id = pr.ProductId
+                      WHERE p.Id = @ProductId AND p.IsDeleted = 0
+                      GROUP BY p.Id, p.Name, p.Description, p.Price, p.Quantity, p.Image, 
+                               p.DateCreated, c.Name, c.Id",
+                    connection);
                 command.Parameters.AddWithValue("@ProductId", id);
 
                 using (var reader = command.ExecuteReader())
@@ -184,11 +230,72 @@ namespace NextCommerce.Pages.Products
                             Image = reader.IsDBNull(5) ? null : reader.GetString(5),
                             DateCreated = reader.GetDateTime(6),
                             CategoryName = reader.IsDBNull(7) ? null : reader.GetString(7),
-                            CategoryId = reader.IsDBNull(8) ? 0 : reader.GetInt32(8)
+                            CategoryId = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
+                            AverageRating = reader.GetDouble(9),
+                            ReviewCount = reader.GetInt32(10)
                         };
                     }
                 }
             }
+        }
+
+        private void LoadReviews(int productId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand(
+                    @"SELECT pr.Id, pr.Rating, pr.Comment, pr.DateCreated, 
+                             u.Username as UserName
+                      FROM ProductReviews pr
+                      JOIN Users u ON pr.UserId = u.Id
+                      WHERE pr.ProductId = @ProductId
+                      ORDER BY pr.DateCreated DESC",
+                    connection);
+                command.Parameters.AddWithValue("@ProductId", productId);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Reviews.Add(new ReviewInfo
+                        {
+                            Id = reader.GetInt32(0),
+                            Rating = reader.GetInt32(1),
+                            Comment = reader.GetString(2),
+                            DateCreated = reader.GetDateTime(3),
+                            UserName = reader.GetString(4)
+                        });
+                    }
+                }
+            }
+        }
+
+        private void CheckUserReview(int productId)
+        {
+            var userId = HttpContext.Session.GetInt32("LoggedUser");
+            if (userId.HasValue)
+            {
+                using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+                {
+                    connection.Open();
+                    var command = new SqlCommand(
+                        "SELECT COUNT(1) FROM ProductReviews WHERE ProductId = @ProductId AND UserId = @UserId",
+                        connection);
+                    command.Parameters.AddWithValue("@ProductId", productId);
+                    command.Parameters.AddWithValue("@UserId", userId.Value);
+                    HasUserReviewed = ((int)command.ExecuteScalar()) > 0;
+                }
+            }
+        }
+
+        public class ReviewInfo
+        {
+            public int Id { get; set; }
+            public int Rating { get; set; }
+            public string Comment { get; set; }
+            public DateTime DateCreated { get; set; }
+            public string UserName { get; set; }
         }
 
         public class ProductInfo
@@ -202,6 +309,8 @@ namespace NextCommerce.Pages.Products
             public DateTime DateCreated { get; set; }
             public string CategoryName { get; set; }
             public int CategoryId { get; set; }
+            public double AverageRating { get; set; }
+            public int ReviewCount { get; set; }
         }
     }
 } 

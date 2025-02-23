@@ -58,7 +58,23 @@
                         }
                     </td>
                     <td>@product.Id</td>
-                    <td>@product.Name</td>
+                    <td>
+                        @product.Name
+                        <div>
+                            @for (int i = 1; i <= 5; i++)
+                            {
+                                if (i <= product.AverageRating)
+                                {
+                                    <i class="fas fa-star text-warning"></i>
+                                }
+                                else
+                                {
+                                    <i class="far fa-star text-warning"></i>
+                                }
+                            }
+                            <span class="ms-2">(@product.ReviewCount)</span>
+                        </div>
+                    </td>
                     <td>@product.Description</td>
                     <td>@product.Price.ToString("C")</td>
                     <td>@product.DateCreated.ToString("g")</td>

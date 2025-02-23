@@ -36,11 +36,17 @@ namespace NextCommerce.Pages.Products
             {
                 connection.Open();
                 var command = new SqlCommand(
-                    @"SELECT p.Id, p.Name, p.Description, p.Price, p.Quantity, p.Image, 
-                             p.DateCreated, c.Name as CategoryName 
+                    @"SELECT p.Id, p.Name, p.Description, p.Price, p.Quantity, p.DateCreated, 
+                             p.Image, c.Name as CategoryName, c.Id as CategoryId,
+                             ISNULL(AVG(CAST(pr.Rating as FLOAT)), 0) as AverageRating,
+                             COUNT(pr.Id) as ReviewCount
                       FROM Products p
                       LEFT JOIN Category c ON p.CategoryId = c.Id
-                      WHERE p.IsDeleted = 0", connection);  // Only show non-deleted products
+                      LEFT JOIN ProductReviews pr ON p.Id = pr.ProductId
+                      WHERE p.IsDeleted = 0
+                      GROUP BY p.Id, p.Name, p.Description, p.Price, p.Quantity, p.DateCreated, 
+                               p.Image, c.Name, c.Id",
+                    connection);
 
                 using (var reader = command.ExecuteReader())
                 {
@@ -54,9 +60,12 @@ namespace NextCommerce.Pages.Products
                             Description = reader.GetString(2),
                             Price = reader.GetDecimal(3),
                             Quantity = reader.GetInt32(4),
-                            Image = reader.IsDBNull(5) ? null : reader.GetString(5),
-                            DateCreated = reader.GetDateTime(6),
-                            CategoryName = reader.IsDBNull(7) ? null : reader.GetString(7)
+                            DateCreated = reader.GetDateTime(5),
+                            Image = reader.IsDBNull(6) ? null : reader.GetString(6),
+                            CategoryName = reader.IsDBNull(7) ? null : reader.GetString(7),
+                            CategoryId = reader.IsDBNull(8) ? 0 : reader.GetInt32(8),
+                            AverageRating = reader.GetDouble(9),
+                            ReviewCount = reader.GetInt32(10)
                         });
                     }
                 }
@@ -225,11 +234,13 @@ namespace NextCommerce.Pages.Products
             public string Name { get; set; }
             public string Description { get; set; }
             public decimal Price { get; set; }
+            public int Quantity { get; set; }
             public DateTime DateCreated { get; set; }
-            public int? CategoryId { get; set; }
-            public string CategoryName { get; set; } // New property for category name
-            public string Image { get; set; } // Add this line to include the Image property
-            public int Quantity { get; set; }  // Add this line
+            public string? Image { get; set; }
+            public string CategoryName { get; set; }
+            public int CategoryId { get; set; }
+            public double AverageRating { get; set; }
+            public int ReviewCount { get; set; }
         }
 
         // Nested Category class
