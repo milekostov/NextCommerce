@@ -3,6 +3,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NextCommerce.Pages.Products
 {
@@ -11,17 +12,26 @@ namespace NextCommerce.Pages.Products
         public ProductDetailsModel(IConfiguration configuration) : base(configuration)
         {
             Reviews = new List<ReviewInfo>();
+            UserOrders = new List<OrderInfo>();
         }
 
         public ProductInfo Product { get; set; }
         public List<ReviewInfo> Reviews { get; set; }
+        public List<OrderInfo> UserOrders { get; set; }
         public bool HasUserReviewed { get; set; }
+        public bool HasPurchasedProduct { get; set; }
+        public int UnreviewedOrderCount { get; set; }
 
         public void OnGet(int id)
         {
             LoadProduct(id);
             LoadReviews(id);
-            CheckUserReview(id);
+            var userId = HttpContext.Session.GetInt32("LoggedUser");
+            if (userId.HasValue)
+            {
+                CheckUserReview(id);
+                CheckUserPurchaseHistory(id, userId.Value);
+            }
         }
 
         public IActionResult OnPostAddToCart(int productId, int quantity)
@@ -163,7 +173,7 @@ namespace NextCommerce.Pages.Products
             }
         }
 
-        public IActionResult OnPostAddReview(int productId, int rating, string? comment)
+        public IActionResult OnPostAddReview(int productId, int orderId, int rating, string? comment)
         {
             var userId = HttpContext.Session.GetInt32("LoggedUser");
             if (!userId.HasValue)
@@ -186,26 +196,52 @@ namespace NextCommerce.Pages.Products
                     {
                         try
                         {
-                            // Check if user already reviewed
+                            // Verify the order exists and belongs to the user
+                            var verifyCommand = new SqlCommand(
+                                @"SELECT COUNT(1) 
+                                  FROM Orders o
+                                  JOIN OrderItems oi ON o.Id = oi.OrderId
+                                  WHERE o.Id = @OrderId 
+                                    AND o.UserId = @UserId 
+                                    AND oi.ProductId = @ProductId
+                                    AND o.Status = 'Completed'",
+                                connection, transaction);
+                            verifyCommand.Parameters.AddWithValue("@OrderId", orderId);
+                            verifyCommand.Parameters.AddWithValue("@UserId", userId.Value);
+                            verifyCommand.Parameters.AddWithValue("@ProductId", productId);
+
+                            if ((int)verifyCommand.ExecuteScalar() == 0)
+                            {
+                                TempData["ErrorMessage"] = "Invalid order or product combination.";
+                                return RedirectToPage(new { id = productId });
+                            }
+
+                            // Check if order already has a review for this product
                             var checkCommand = new SqlCommand(
-                                "SELECT COUNT(1) FROM ProductReviews WHERE ProductId = @ProductId AND UserId = @UserId",
+                                @"SELECT COUNT(1) 
+                                  FROM ProductReviews 
+                                  WHERE ProductId = @ProductId 
+                                    AND UserId = @UserId
+                                    AND OrderId = @OrderId",
                                 connection, transaction);
                             checkCommand.Parameters.AddWithValue("@ProductId", productId);
                             checkCommand.Parameters.AddWithValue("@UserId", userId.Value);
-                            
+                            checkCommand.Parameters.AddWithValue("@OrderId", orderId);
+
                             if ((int)checkCommand.ExecuteScalar() > 0)
                             {
-                                TempData["ErrorMessage"] = "You have already reviewed this product.";
+                                TempData["ErrorMessage"] = "You have already reviewed this product for this order.";
                                 return RedirectToPage(new { id = productId });
                             }
 
                             // Add the new review
                             var command = new SqlCommand(
-                                @"INSERT INTO ProductReviews (ProductId, UserId, Rating, Comment) 
-                                  VALUES (@ProductId, @UserId, @Rating, @Comment)",
+                                @"INSERT INTO ProductReviews (ProductId, UserId, OrderId, Rating, Comment) 
+                                  VALUES (@ProductId, @UserId, @OrderId, @Rating, @Comment)",
                                 connection, transaction);
                             command.Parameters.AddWithValue("@ProductId", productId);
                             command.Parameters.AddWithValue("@UserId", userId.Value);
+                            command.Parameters.AddWithValue("@OrderId", orderId);
                             command.Parameters.AddWithValue("@Rating", rating);
                             command.Parameters.AddWithValue("@Comment", (object?)comment ?? DBNull.Value);
                             command.ExecuteNonQuery();
@@ -334,6 +370,47 @@ namespace NextCommerce.Pages.Products
             }
         }
 
+        private void CheckUserPurchaseHistory(int productId, int userId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand(
+                    @"SELECT o.Id, o.OrderNumber, o.OrderDate,
+                             COUNT(pr.OrderId) as ReviewCount
+                      FROM Orders o
+                      JOIN OrderItems oi ON o.Id = oi.OrderId
+                      LEFT JOIN ProductReviews pr ON pr.OrderId = o.Id 
+                        AND pr.ProductId = oi.ProductId
+                      WHERE o.UserId = @UserId 
+                        AND oi.ProductId = @ProductId
+                        AND o.Status = 'Completed'
+                      GROUP BY o.Id, o.OrderNumber, o.OrderDate
+                      HAVING COUNT(pr.OrderId) = 0",  // Only get orders that haven't been reviewed
+                    connection);
+                
+                command.Parameters.AddWithValue("@UserId", userId);
+                command.Parameters.AddWithValue("@ProductId", productId);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    UserOrders.Clear();
+                    while (reader.Read())
+                    {
+                        UserOrders.Add(new OrderInfo
+                        {
+                            Id = reader.GetInt32(0),
+                            OrderNumber = reader.GetString(1),
+                            OrderDate = reader.GetDateTime(2)
+                        });
+                    }
+                }
+            }
+
+            HasPurchasedProduct = UserOrders.Any();
+            UnreviewedOrderCount = UserOrders.Count;
+        }
+
         public class ReviewInfo
         {
             public int Id { get; set; }
@@ -356,6 +433,13 @@ namespace NextCommerce.Pages.Products
             public int CategoryId { get; set; }
             public double AverageRating { get; set; }
             public int ReviewCount { get; set; }
+        }
+
+        public class OrderInfo
+        {
+            public int Id { get; set; }
+            public string OrderNumber { get; set; }
+            public DateTime OrderDate { get; set; }
         }
     }
 } 

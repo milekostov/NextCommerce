@@ -108,10 +108,20 @@
             <div class="card-body">
                 @if (HttpContext.Session.GetInt32("LoggedUser") != null)
                 {
-                    if (!Model.HasUserReviewed)
+                    if (Model.HasPurchasedProduct && Model.UnreviewedOrderCount > 0)
                     {
                         <form method="post" asp-page-handler="AddReview" class="mb-4">
                             <input type="hidden" name="productId" value="@Model.Product.Id" />
+                            <div class="mb-3">
+                                <label class="form-label">Select Order</label>
+                                <select name="orderId" class="form-select" required>
+                                    <option value="">Select an order to review</option>
+                                    @foreach (var order in Model.UserOrders)
+                                    {
+                                        <option value="@order.Id">Order #@order.OrderNumber (@order.OrderDate.ToString("MMM dd, yyyy"))</option>
+                                    }
+                                </select>
+                            </div>
                             <div class="mb-3">
                                 <label class="form-label">Your Rating</label>
                                 <div class="star-rating">
@@ -133,6 +143,18 @@
                             </div>
                             <button type="submit" class="btn btn-primary">Submit Review</button>
                         </form>
+                    }
+                    else if (!Model.HasPurchasedProduct)
+                    {
+                        <div class="alert alert-info">
+                            You need to purchase this product before you can review it.
+                        </div>
+                    }
+                    else if (Model.UnreviewedOrderCount == 0)
+                    {
+                        <div class="alert alert-info">
+                            You have already reviewed this product for all your orders.
+                        </div>
                     }
                 }
                 else
