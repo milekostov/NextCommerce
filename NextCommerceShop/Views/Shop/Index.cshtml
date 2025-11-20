@@ -1,0 +1,80 @@
+﻿@model IEnumerable<NextCommerceShop.Models.Product>
+
+@{
+    ViewData["Title"] = "Shop";
+}
+
+<h1 class="mb-4">Shop</h1>
+
+@if (Model == null || !Model.Any())
+{
+    <p>No products available.</p>
+}
+else
+{
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        @foreach (var item in Model)
+        {
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+
+                    @* 🔹 Clickable area: image + text go to Details *@
+                    <a asp-controller="Shop"
+                       asp-action="Details"
+                       asp-route-id="@item.Id"
+                       class="text-decoration-none text-dark"
+                       style="display:block;">
+
+                        @* Image *@
+                        @if (!string.IsNullOrEmpty(item.ImageUrl))
+                        {
+                            <img src="@item.ImageUrl"
+                                 class="card-img-top"
+                                 style="height: 200px; object-fit: cover;"
+                                 alt="@item.Name" />
+                        }
+                        else
+                        {
+                            <img src="https://via.placeholder.com/400x200?text=No+Image"
+                                 class="card-img-top"
+                                 alt="No image available" />
+                        }
+
+                        @* Card body *@
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title">@item.Name</h5>
+
+                            <h6 class="card-subtitle mb-2 text-muted">
+                                @item.Category?.Name
+                            </h6>
+
+                            @if (!string.IsNullOrWhiteSpace(item.Description))
+                            {
+                                <p class="card-text">@item.Description</p>
+                            }
+
+                            <div class="mt-auto">
+                                <p class="fw-bold mb-1">@item.Price.ToString("0.00") €</p>
+                                <p class="text-muted mb-2">In stock: @item.StockQuantity</p>
+                            </div>
+                        </div>
+                    </a>
+
+                    @* 🔹 Footer: Add to cart button (calls Shop.AddToCart) *@
+                    <div class="card-footer bg-white border-0 pt-0">
+                        <form asp-controller="Shop"
+                              asp-action="AddToCart"
+                              method="post"
+                              class="d-grid">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" class="btn btn-primary">
+                                Add to cart
+                            </button>
+                        </form>
+                    </div>
+
+                </div>
+            </div>
+        }
+    </div>
+}

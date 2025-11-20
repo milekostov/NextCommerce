@@ -18,6 +18,9 @@ namespace NextCommerce.Pages.Products
         public ProductInfo Product { get; set; }
         public List<ReviewInfo> Reviews { get; set; }
         public List<OrderInfo> UserOrders { get; set; }
+
+        public List<string> AvailableStores { get; set; } = new List<string>();
+
         public bool HasUserReviewed { get; set; }
         public bool HasPurchasedProduct { get; set; }
         public int UnreviewedOrderCount { get; set; }
@@ -26,6 +29,8 @@ namespace NextCommerce.Pages.Products
         {
             LoadProduct(id);
             LoadReviews(id);
+            LoadAvailableStores(id);
+
             var userId = HttpContext.Session.GetInt32("LoggedUser");
             if (userId.HasValue)
             {
@@ -351,6 +356,30 @@ namespace NextCommerce.Pages.Products
                 }
             }
         }
+
+        private void LoadAvailableStores(int productId)
+        {
+            using (var connection = new SqlConnection(_configuration.GetConnectionString("DefaultConnection")))
+            {
+                connection.Open();
+                var command = new SqlCommand(
+                    @"SELECT s.StoreName
+              FROM Stores s
+              INNER JOIN ProductAvailability pa ON s.StoreId = pa.StoreId
+              WHERE pa.ProductId = @ProductId", connection);
+                command.Parameters.AddWithValue("@ProductId", productId);
+
+                using (var reader = command.ExecuteReader())
+                {
+                    AvailableStores.Clear();
+                    while (reader.Read())
+                    {
+                        AvailableStores.Add(reader.GetString(0));
+                    }
+                }
+            }
+        }
+
 
         private void CheckUserReview(int productId)
         {

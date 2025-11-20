@@ -1,0 +1,25 @@
+﻿@page
+@model NextCommerce.Pages.Stores.IndexModel
+@{
+    ViewData["Title"] = "Stores";
+}
+
+<h2>Stores</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>Store Name</th>
+            <th>Location</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var store in Model.Stores)
+        {
+            <tr>
+                <td>@store.StoreName</td>
+                <td>@store.Location</td>
+            </tr>
+        }
+    </tbody>
+</table>

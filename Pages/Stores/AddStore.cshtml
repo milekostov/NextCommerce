@@ -1,0 +1,28 @@
+﻿@page
+@model NextCommerce.Pages.Stores.AddStoreModel
+@{
+    ViewData["Title"] = "Add Store";
+}
+
+<h2>Add Store</h2>
+
+<form method="post">
+    <div>
+        <label>Store Name:</label>
+        <input asp-for="StoreName" />
+    </div>
+    <div>
+        <label>Location:</label>
+        <input asp-for="Location" />
+    </div>
+    <button type="submit">Add Store</button>
+</form>
+
+@if (Model.SuccessMessage != null)
+{
+    <p style="color:green">@Model.SuccessMessage</p>
+}
+@if (Model.ErrorMessage != null)
+{
+    <p style="color:red">@Model.ErrorMessage</p>
+}
