@@ -17,14 +17,25 @@ namespace NextCommerceShop.Controllers
         }
 
         // Public catalog page
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? categoryId)
         {
-            var products = await _context.Products
+            var productsQuery = _context.Products
                 .Include(p => p.Category)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (categoryId.HasValue)
+            {
+                productsQuery = productsQuery.Where(p => p.CategoryId == categoryId.Value);
+            }
+
+            var products = await productsQuery.ToListAsync();
+
+            ViewBag.Categories = await _context.Categories.ToListAsync();
+            ViewBag.SelectedCategoryId = categoryId;
 
             return View(products);
         }
+
         // Product details page
         public async Task<IActionResult> Details(int id)
         {

@@ -6,6 +6,38 @@
 
 <h1 class="mb-4">Shop</h1>
 
+@* ============================
+   CATEGORY FILTER DROPDOWN
+   ============================ *@
+@{
+    var categories = ViewBag.Categories as List<NextCommerceShop.Models.Category>;
+    int? selectedCategoryId = ViewBag.SelectedCategoryId as int?;
+}
+
+<form asp-controller="Shop" asp-action="Index" method="get" class="mb-3">
+    <select name="categoryId" class="form-select" onchange="this.form.submit()">
+        <option value="">All categories</option>
+
+        @if (categories != null)
+        {
+            foreach (var c in categories)
+            {
+                if (selectedCategoryId == c.Id)
+                {
+                    <option value="@c.Id" selected>@c.Name</option>
+                }
+                else
+                {
+                    <option value="@c.Id">@c.Name</option>
+                }
+            }
+        }
+    </select>
+</form>
+
+@* ============================
+   PRODUCT LIST
+   ============================ *@
 @if (Model == null || !Model.Any())
 {
     <p>No products available.</p>
@@ -18,14 +50,12 @@ else
             <div class="col">
                 <div class="card h-100 shadow-sm">
 
-                    @* 🔹 Clickable area: image + text go to Details *@
                     <a asp-controller="Shop"
                        asp-action="Details"
                        asp-route-id="@item.Id"
                        class="text-decoration-none text-dark"
                        style="display:block;">
 
-                        @* Image *@
                         @if (!string.IsNullOrEmpty(item.ImageUrl))
                         {
                             <img src="@item.ImageUrl"
@@ -40,7 +70,6 @@ else
                                  alt="No image available" />
                         }
 
-                        @* Card body *@
                         <div class="card-body d-flex flex-column">
                             <h5 class="card-title">@item.Name</h5>
 
@@ -60,7 +89,6 @@ else
                         </div>
                     </a>
 
-                    @* 🔹 Footer: Add to cart button (calls Shop.AddToCart) *@
                     <div class="card-footer bg-white border-0 pt-0">
                         <form asp-controller="Shop"
                               asp-action="AddToCart"

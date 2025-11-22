@@ -345,3 +345,4 @@ C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\bin\Debug\net10.0\ru\M
 C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\bin\Debug\net10.0\tr\Microsoft.CodeAnalysis.Scripting.resources.dll
 C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\bin\Debug\net10.0\zh-Hans\Microsoft.CodeAnalysis.Scripting.resources.dll
 C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\bin\Debug\net10.0\zh-Hant\Microsoft.CodeAnalysis.Scripting.resources.dll
+C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\obj\Debug\net10.0\NextCommerceShop.sourcelink.json
