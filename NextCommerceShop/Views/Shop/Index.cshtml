@@ -7,33 +7,47 @@
 <h1 class="mb-4">Shop</h1>
 
 @* ============================
-   CATEGORY FILTER DROPDOWN
+   CATEGORY FILTER DROPDOWN AND SEARCH BAR
    ============================ *@
 @{
     var categories = ViewBag.Categories as List<NextCommerceShop.Models.Category>;
     int? selectedCategoryId = ViewBag.SelectedCategoryId as int?;
+    string search = ViewBag.Search as string ?? "";
 }
 
-<form asp-controller="Shop" asp-action="Index" method="get" class="mb-3">
-    <select name="categoryId" class="form-select" onchange="this.form.submit()">
-        <option value="">All categories</option>
-
-        @if (categories != null)
-        {
-            foreach (var c in categories)
+<form asp-controller="Shop" asp-action="Index" method="get" class="row g-2 mb-3 align-items-center">
+    <div class="col-auto">
+        <select name="categoryId" class="form-select" onchange="this.form.submit()">
+            <option value="">All categories</option>
+            @if (categories != null)
             {
-                if (selectedCategoryId == c.Id)
+                foreach (var c in categories)
                 {
-                    <option value="@c.Id" selected>@c.Name</option>
-                }
-                else
-                {
-                    <option value="@c.Id">@c.Name</option>
+                    if (selectedCategoryId == c.Id)
+                    {
+                        <option value="@c.Id" selected>@c.Name</option>
+                    }
+                    else
+                    {
+                        <option value="@c.Id">@c.Name</option>
+                    }
                 }
             }
-        }
-    </select>
+        </select>
+    </div>
+
+    <div class="col">
+        <input name="search"
+               value="@search"
+               class="form-control"
+               placeholder="Search products..." />
+    </div>
+
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-secondary">Search</button>
+    </div>
 </form>
+
 
 @* ============================
    PRODUCT LIST

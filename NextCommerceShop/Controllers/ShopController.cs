@@ -17,7 +17,7 @@ namespace NextCommerceShop.Controllers
         }
 
         // Public catalog page
-        public async Task<IActionResult> Index(int? categoryId)
+        public async Task<IActionResult> Index(int? categoryId, string? search)
         {
             var productsQuery = _context.Products
                 .Include(p => p.Category)
@@ -28,13 +28,23 @@ namespace NextCommerceShop.Controllers
                 productsQuery = productsQuery.Where(p => p.CategoryId == categoryId.Value);
             }
 
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var s = search.Trim().ToLower();
+                productsQuery = productsQuery.Where(p =>
+                    p.Name.ToLower().Contains(s) ||
+                    (p.Description != null && p.Description.ToLower().Contains(s)));
+            }
+
             var products = await productsQuery.ToListAsync();
 
             ViewBag.Categories = await _context.Categories.ToListAsync();
             ViewBag.SelectedCategoryId = categoryId;
+            ViewBag.Search = search;
 
             return View(products);
         }
+
 
         // Product details page
         public async Task<IActionResult> Details(int id)
