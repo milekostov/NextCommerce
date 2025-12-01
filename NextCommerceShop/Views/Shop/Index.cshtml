@@ -1,68 +1,116 @@
-﻿@model IEnumerable<NextCommerceShop.Models.Product>
+﻿@model NextCommerceShop.Models.ViewModels.CatalogViewModel
+@using Microsoft.AspNetCore.Mvc.Rendering
 
 @{
     ViewData["Title"] = "Shop";
+
+    // Build SelectLists once (clean + no C# in <option>)
+    var categoryItems = new SelectList(
+        Model.Categories,
+        nameof(NextCommerceShop.Models.Category.Id),
+        nameof(NextCommerceShop.Models.Category.Name),
+        Model.SelectedCategoryId
+    );
+
+    var sortItems = new SelectList(
+        new[]
+        {
+            new { Value = "",           Text = "Newest" },
+            new { Value = "price_asc",  Text = "Price: Low → High" },
+            new { Value = "price_desc", Text = "Price: High → Low" },
+            new { Value = "name_asc",   Text = "Name: A → Z" },
+            new { Value = "name_desc",  Text = "Name: Z → A" }
+        },
+        "Value",
+        "Text",
+        Model.SortBy ?? ""
+    );
 }
 
 <h1 class="mb-4">Shop</h1>
 
-@* ============================
-   CATEGORY FILTER DROPDOWN AND SEARCH BAR
-   ============================ *@
-@{
-    var categories = ViewBag.Categories as List<NextCommerceShop.Models.Category>;
-    int? selectedCategoryId = ViewBag.SelectedCategoryId as int?;
-    string search = ViewBag.Search as string ?? "";
-}
+<!-- ============================
+     CATEGORY FILTER + SEARCH + SORT (PREMIUM BAR)
+     ============================ -->
+<form asp-controller="Shop" asp-action="Index" method="get"
+      class="filter-bar d-flex flex-wrap align-items-center">
 
-<form asp-controller="Shop" asp-action="Index" method="get" class="row g-2 mb-3 align-items-center">
-    <div class="col-auto">
-        <select name="categoryId" class="form-select" onchange="this.form.submit()">
-            <option value="">All categories</option>
-            @if (categories != null)
-            {
-                foreach (var c in categories)
-                {
-                    if (selectedCategoryId == c.Id)
-                    {
-                        <option value="@c.Id" selected>@c.Name</option>
-                    }
-                    else
-                    {
-                        <option value="@c.Id">@c.Name</option>
-                    }
-                }
-            }
-        </select>
+    <!-- Category -->
+    <div class="filter-item">
+        <div class="input-group">
+            <span class="input-group-text filter-icon">
+                <i class="bi bi-grid-3x3-gap"></i>
+            </span>
+
+            <select name="categoryId" class="form-select" asp-items="categoryItems" onchange="this.form.submit()">
+                <option value="">All categories</option>
+            </select>
+        </div>
     </div>
 
-    <div class="col">
-        <input name="search"
-               value="@search"
-               class="form-control"
-               placeholder="Search products..." />
+    <!-- Clear -->
+    <div class="filter-item">
+        <a asp-action="Index" class="filter-chip">
+            <i class="bi bi-x-lg"></i> Clear
+        </a>
     </div>
 
-    <div class="col-auto">
-        <button type="submit" class="btn btn-outline-secondary">Search</button>
+    <!-- Search -->
+    <div class="filter-item filter-grow">
+        <div class="input-group w-100">
+            <span class="input-group-text filter-icon">
+                <i class="bi bi-search"></i>
+            </span>
+            <input name="search"
+                   value="@Model.Search"
+                   class="form-control"
+                   placeholder="Search products..." />
+        </div>
+    </div>
+
+    <!-- Sort -->
+    <div class="filter-item">
+        <div class="input-group">
+            <span class="input-group-text filter-icon">
+                <i class="bi bi-sort-down-alt"></i>
+            </span>
+
+            <select name="sortBy" class="form-select" asp-items="sortItems" onchange="this.form.submit()"></select>
+        </div>
+    </div>
+
+    <!-- Button -->
+    <div class="filter-item">
+        <button type="submit" class="btn-search-modern">
+            <i class="bi bi-arrow-right-circle"></i> Search
+        </button>
     </div>
 </form>
 
-
-@* ============================
-   PRODUCT LIST
-   ============================ *@
-@if (Model == null || !Model.Any())
+<!-- ============================
+     PRODUCT LIST
+     ============================ -->
+@if (Model.Products == null || !Model.Products.Any())
 {
     <p>No products available.</p>
 }
 else
 {
     <div class="row row-cols-1 row-cols-md-3 g-4">
-        @foreach (var item in Model)
+        @foreach (var item in Model.Products)
         {
             <div class="col">
-                <div class="card h-100 shadow-sm">
+                <div class="card h-100 shadow-sm position-relative">
+
+                    <!-- Badges -->
+                    @if (item.StockQuantity == 0)
+                    {
+                        <span class="product-badge badge-out">OUT OF STOCK</span>
+                    }
+                    else if (item.StockQuantity <= 5)
+                    {
+                        <span class="product-badge badge-low">LOW STOCK</span>
+                    }
 
                     <a asp-controller="Shop"
                        asp-action="Details"
@@ -109,7 +157,7 @@ else
                               method="post"
                               class="d-grid">
                             <input type="hidden" name="id" value="@item.Id" />
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="btn btn-primary" @(item.StockQuantity == 0 ? "disabled" : "")>
                                 Add to cart
                             </button>
                         </form>
@@ -119,4 +167,46 @@ else
             </div>
         }
     </div>
+}
+
+<!-- ============================
+     PAGINATION
+     ============================ -->
+@if (Model.TotalPages > 1)
+{
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+
+            <li class="page-item @(Model.Page == 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(Model.Page - 1)"
+                   asp-route-categoryId="@Model.SelectedCategoryId"
+                   asp-route-search="@Model.Search"
+                   asp-route-sortBy="@Model.SortBy">Prev</a>
+            </li>
+
+            @for (int i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.Page ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-categoryId="@Model.SelectedCategoryId"
+                       asp-route-search="@Model.Search"
+                       asp-route-sortBy="@Model.SortBy">@i</a>
+                </li>
+            }
+
+            <li class="page-item @(Model.Page == Model.TotalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-page="@(Model.Page + 1)"
+                   asp-route-categoryId="@Model.SelectedCategoryId"
+                   asp-route-search="@Model.Search"
+                   asp-route-sortBy="@Model.SortBy">Next</a>
+            </li>
+
+        </ul>
+    </nav>
 }

@@ -1,51 +1,99 @@
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using NextCommerceShop.Data;
+using NextCommerceShop.Models;
+using Microsoft.AspNetCore.Identity.UI.Services;
+using NextCommerceShop.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Register AppDbContext with SQL Server
+// MVC Controllers + Views
+builder.Services.AddControllersWithViews();
+
+// Identity (with required email confirmation)
+builder.Services
+    .AddDefaultIdentity<ApplicationUser>(options =>
+    {
+        options.SignIn.RequireConfirmedAccount = true;
+        options.User.RequireUniqueEmail = true;
+    })
+    .AddRoles<IdentityRole>()
+    .AddEntityFrameworkStores<AppDbContext>();
+
+builder.Services.AddTransient<IEmailSender, BrevoEmailSender>();
+
+
+builder.Services.AddRazorPages();
+
+builder.Services.AddHttpContextAccessor();
+
+// EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-builder.Services.AddDistributedMemoryCache();
-
+// Session (Cart)
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(30); // how long cart lives if user is inactive
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
 
-
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-builder.Services.AddHttpContextAccessor();
-
-
 var app = builder.Build();
+await SeedAdminAsync(app.Services);
 
-// Configure the HTTP request pipeline.
+
+async Task SeedAdminAsync(IServiceProvider services)
+{
+    using var scope = services.CreateScope();
+
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+
+    const string adminRole = "Admin";
+
+    // 1) Create Admin role if missing
+    if (!await roleManager.RoleExistsAsync(adminRole))
+        await roleManager.CreateAsync(new IdentityRole(adminRole));
+
+    // 2) Promote this email to Admin (you will change this in Step 3)
+    var adminEmail = "mkostov@nextbyte.mk";
+
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+
+    if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, adminRole))
+        await userManager.AddToRoleAsync(adminUser, adminRole);
+}
+
+
+// Pipeline
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-app.UseRouting();
-app.UseSession();
+app.UseStaticFiles();
 
+app.UseRouting();
+
+app.UseSession();
+app.UseAuthentication();     // <-- IMPORTANT
 app.UseAuthorization();
 
-app.MapStaticAssets();
+// MVC
 
 app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
+);
+app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Shop}/{action=Index}/{id?}")
-    .WithStaticAssets();
+    pattern: "{controller=Shop}/{action=Index}/{id?}");
 
+// Identity Razor Pages
+app.MapRazorPages();
 
 app.Run();

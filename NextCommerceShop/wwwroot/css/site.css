@@ -1,31 +1,210 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus,
+.form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
 }
 
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
+.form-floating > .form-control-plaintext::placeholder,
+.form-floating > .form-control::placeholder {
+    color: var(--bs-secondary-color);
+    text-align: end;
 }
 
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
+.form-floating > .form-control-plaintext:focus::placeholder,
+.form-floating > .form-control:focus::placeholder {
+    text-align: start;
+}
+
+
+/* =========================
+   PREMIUM PRODUCT BADGES
+   ========================= */
+.product-badge {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    z-index: 3;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.4px;
+    text-transform: uppercase;
+    color: #fff;
+    border-radius: 999px; /* pill */
+    box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+    backdrop-filter: blur(4px);
+}
+
+/* Out of stock = strong red gradient */
+.badge-out {
+    background: linear-gradient(135deg, #ff4d4d 0%, #c1121f 100%);
+}
+
+/* Low stock = warm orange gradient */
+.badge-low {
+    background: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
+    color: #1a1a1a; /* better contrast on yellow */
+}
+
+/* Optional: small dot for extra polish */
+.product-badge::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 0 0 2px rgba(255,255,255,0.35);
+}
+
+
+/* =========================================
+   FINAL PREMIUM COMPACT SHOP FILTER BAR
+   (tight, balanced, modern)
+   ========================================= */
+
+.filter-bar {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    width: 100%;
+    background: #ffffff;
+    border: 1px solid #eceff3;
+    border-radius: 14px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    box-shadow: 0 6px 18px rgba(16, 24, 40, 0.05);
+    /* tighter spacing between items */
+    gap: 6px !important;
+}
+
+    /* Make all controls same height & sleek */
+    .filter-bar .form-select,
+    .filter-bar .form-control,
+    .filter-bar .btn-search-modern {
+        height: 36px;
+        border-radius: 8px;
+        font-size: 13px;
+    }
+
+    /* Inputs/selects cleaner */
+    .filter-bar .form-select,
+    .filter-bar .form-control {
+        border: 1px solid #e3e6eb;
+        padding: 6px 10px;
+        transition: 0.15s ease;
+        background: #fff;
+    }
+
+        .filter-bar .form-select:focus,
+        .filter-bar .form-control:focus {
+            border-color: #b7cffc;
+            box-shadow: 0 0 0 3px rgba(13,110,253,0.10);
+        }
+
+    /* Remove “boxy” input-group look */
+    .filter-bar .input-group-text {
+        border: none;
+        background: transparent;
+        padding-left: 8px;
+        padding-right: 4px;
+    }
+
+/* Softer smaller icons */
+.filter-icon i {
+    font-size: 14px;
+    opacity: 0.6;
+}
+
+/* Keep input-group aligned without extra borders */
+.filter-bar .input-group {
+    border: 1px solid #e3e6eb;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+    .filter-bar .input-group .form-control,
+    .filter-bar .input-group .form-select {
+        border: none;
+        box-shadow: none;
+    }
+
+/* Balanced widths */
+.filter-bar select[name="categoryId"] {
+    width: 150px;
+}
+
+.filter-bar select[name="sortBy"] {
+    width: 150px;
+}
+
+/* Stop search from dominating */
+.filter-bar .col {
+    flex: 1 1 350px;
+}
+
+/* Clear chip: subtle, modern */
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 999px;
+    background: #f6f7f9;
+    border: 1px solid #e1e4e8;
+    color: #2b3440;
+    font-size: 12.5px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: 0.15s ease;
+}
+
+    .filter-chip:hover {
+        background: #eef1f5;
+        border-color: #d3d7dd;
+    }
+
+/* Search button: premium ghost */
+.btn-search-modern {
+    background: #fff;
+    border: 1.5px solid #d7dbe2;
+    padding: 0 12px;
+    font-weight: 600;
+    transition: 0.15s ease;
+}
+
+    .btn-search-modern:hover {
+        background: #f7f9fc;
+        transform: translateY(-1px);
+    }
+.filter-item {
+    flex: 0 0 auto;
+    margin-right: 6px;
+}
+
+.filter-grow {
+    flex: 1 1 280px;
+    min-width: 220px;
 }

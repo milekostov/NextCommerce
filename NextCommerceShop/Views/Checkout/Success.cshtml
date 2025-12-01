@@ -1,0 +1,37 @@
+﻿@model NextCommerceShop.Models.Order
+
+@{
+    ViewData["Title"] = "Order Success";
+}
+
+<h1>✅ Order Placed!</h1>
+
+<p class="mt-3">
+    Thank you, <strong>@Model.FullName</strong>.
+</p>
+
+<p>
+    Your order <strong>#@Model.Id</strong> was placed on
+    <strong>@Model.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</strong>.
+</p>
+
+<h4 class="mt-3">
+    Total paid:
+    <span class="text-success">@Model.TotalAmount.ToString("0.00") €</span>
+</h4>
+
+<hr />
+
+<h5>Items:</h5>
+<ul>
+    @foreach (var item in Model.Items)
+    {
+        <li>
+            @item.ProductName — @item.Quantity x @item.UnitPrice.ToString("0.00") €
+        </li>
+    }
+</ul>
+
+<a asp-controller="Shop" asp-action="Index" class="btn btn-primary mt-4">
+    Continue Shopping
+</a>

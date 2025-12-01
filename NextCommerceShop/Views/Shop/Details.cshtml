@@ -12,10 +12,20 @@
         @* 🔹 Large product image *@
         @if (!string.IsNullOrEmpty(Model.ImageUrl))
         {
-            <img src="@Model.ImageUrl"
-                 class="img-fluid shadow-sm rounded mb-3"
-                 style="max-height: 400px; object-fit: cover;"
-                 alt="@Model.Name" />
+            <div class="position-relative d-inline-block">
+                @* BADGES *@
+                @if (Model.StockQuantity == 0)
+                {
+                    <span class="product-badge badge-out">OUT OF STOCK</span>
+                }
+                else if (Model.StockQuantity <= 5)
+                {
+                    <span class="product-badge badge-low">LOW STOCK</span>
+                }
+
+                <img src="@Model.ImageUrl" class="img-fluid" alt="@Model.Name" />
+            </div>
+
         }
         else
         {
@@ -43,9 +53,10 @@
 
         <form method="post" asp-controller="Cart" asp-action="Add">
             <input type="hidden" name="productId" value="@Model.Id" />
-            <button type="submit" class="btn btn-primary btn-lg px-4">
-                Add to Cart
+            <button type="submit" class="btn btn-primary" @(Model.StockQuantity == 0 ? "disabled" : "")>
+                Add to cart
             </button>
+
         </form>
 
         <a asp-controller="Shop" asp-action="Index" class="btn btn-outline-secondary mt-3">

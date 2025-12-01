@@ -1,0 +1,299 @@
+﻿@model NextCommerceShop.Models.Order
+@using NextCommerceShop.Models
+@using Microsoft.EntityFrameworkCore
+
+@functions {
+    string StatusBadgeClass(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => "bg-warning text-dark",
+        OrderStatus.Paid => "bg-white border text-dark",
+        OrderStatus.Processing => "bg-primary",
+        OrderStatus.Shipped => "bg-info text-dark",
+        OrderStatus.Completed => "bg-success",
+        OrderStatus.Cancelled => "bg-danger",
+        OrderStatus.Refunded => "bg-secondary",
+        _ => "bg-secondary"
+    };
+}
+
+@{
+    ViewData["Title"] = $"Order #{Model.Id}";
+}
+
+<h1 class="mb-3">Order #@Model.Id</h1>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@{
+    var timelineSteps = new[]
+    {
+        OrderStatus.Pending,
+        OrderStatus.Processing,
+        OrderStatus.Paid,
+        OrderStatus.Shipped,
+        OrderStatus.Completed
+    };
+
+    int currentIndex = Array.IndexOf(timelineSteps, Model.Status);
+    if (currentIndex == -1)
+        currentIndex = 0;
+
+    bool isTerminal =
+        Model.Status == OrderStatus.Cancelled ||
+        Model.Status == OrderStatus.Refunded;
+}
+
+<div class="mb-4">
+    <div class="small text-muted mb-1">Order Progress</div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2">
+
+        @for (int i = 0; i < timelineSteps.Length; i++)
+        {
+            var step = timelineSteps[i];
+            bool isDone = !isTerminal && i < currentIndex;
+            bool isCurrent = !isTerminal && i == currentIndex;
+
+            string label = step.ToString();
+            string badgeClass = isCurrent
+            ? "bg-primary text-white"
+            : isDone
+            ? "bg-success text-white"
+            : "bg-light text-muted";
+
+            <div class="d-flex align-items-center">
+                @if (i > 0)
+                {
+                    <div class="mx-1"
+                         style="width:30px;height:2px;background-color:@(isDone || isCurrent ? "#0d6efd" : "#dee2e6")">
+                    </div>
+
+                }
+
+                <span class="badge rounded-pill @badgeClass">
+                    @label
+                </span>
+            </div>
+        }
+
+        @if (isTerminal)
+        {
+            <span class="badge rounded-pill bg-danger ms-2">
+                @Model.Status
+            </span>
+        }
+    </div>
+</div>
+
+@* ----------------- STATUS HISTORY (ADMIN) ----------------- *@
+@{
+    // Lazy-load order history via DI in the view (quick approach).
+    var db = Context.RequestServices.GetRequiredService<NextCommerceShop.Data.AppDbContext>();
+    var histories = await db.OrderStatusHistories
+        .Where(h => h.OrderId == Model.Id)
+        .OrderByDescending(h => h.ChangedAt)
+        .ToListAsync();
+}
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header fw-semibold">Status history</div>
+    <div class="card-body">
+        @if (histories.Any())
+        {
+            <ul class="list-group list-group-flush">
+                @foreach (var h in histories)
+                {
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>@h.FromStatus</strong>
+                                <i class="bi bi-arrow-right-short mx-1"></i>
+                                <strong>@h.ToStatus</strong>
+                                @if (!string.IsNullOrEmpty(h.Note))
+                                {
+                                    <div class="small text-muted">Note: @h.Note</div>
+                                }
+                            </div>
+                            <div class="text-end small text-muted">
+                                @h.ChangedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")<br />
+                                <span class="text-nowrap">By: @h.ChangedByUserId</span>
+                            </div>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+        else
+        {
+            <div class="text-muted small">No status changes recorded for this order.</div>
+        }
+    </div>
+</div>
+
+<div class="row g-3">
+    <!-- LEFT: items -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Items</strong>
+                <span class="badge rounded-pill @StatusBadgeClass(Model.Status)">
+                    @Model.Status
+                </span>
+            </div>
+
+            <div class="card-body p-0">
+                <table class="table mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Product</th>
+                            <th class="text-center">Qty</th>
+                            <th class="text-end">Price</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var i in Model.Items)
+                        {
+                            <tr>
+                                <td>@i.ProductName</td>
+                                <td class="text-center">@i.Quantity</td>
+                                <td class="text-end">@i.UnitPrice.ToString("0.00") €</td>
+                                <td class="text-end">@i.LineTotal.ToString("0.00") €</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <th colspan="3" class="text-end">Total:</th>
+                            <th class="text-end">@Model.TotalAmount.ToString("0.00") €</th>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT: customer + status dropdown -->
+    <div class="col-lg-4">
+        <div class="card shadow-sm mb-3">
+            <div class="card-header"><strong>Customer & Shipping</strong></div>
+            <div class="card-body">
+                <div><strong>Name:</strong> @Model.FullName</div>
+                <div><strong>Email:</strong> @Model.Email</div>
+                <div><strong>Phone:</strong> @Model.Phone</div>
+                <hr />
+                <div><strong>Address:</strong> @Model.Address</div>
+                <div><strong>City:</strong> @Model.City</div>
+                <div><strong>Ordered at:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</div>
+            </div>
+        </div>
+
+        <div class="card shadow-sm">
+            <div class="card-header"><strong>Update status</strong></div>
+            <div class="card-body">
+                @* AJAX-enabled status UI with server POST fallback *@
+                <div class="mb-2">
+                    <select id="statusSelect" class="form-select mb-2" data-order-id="@Model.Id">
+                        @foreach (var s in Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>())
+                        {
+                            <option value="@s" @(Model.Status == s ? "selected" : "")>@s</option>
+                        }
+                    </select>
+
+                    <input id="statusNote" class="form-control form-control-sm mb-2" placeholder="Optional note (visible in history)" />
+
+                    <div class="d-grid gap-2">
+                        <button id="statusSaveBtn" class="btn btn-primary">Save status (AJAX)</button>
+
+                        @* fallback form (visible if JS fails) *@
+                        <form asp-area="Admin"
+                              asp-controller="Orders"
+                              asp-action="UpdateStatus"
+                              method="post"
+                              id="fallbackForm" class="d-none">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <input type="hidden" name="newStatus" id="fallbackNewStatus" value="@Model.Status" />
+                            <input type="text" name="note" id="fallbackNote" class="form-control form-control-sm mb-2" placeholder="Note (optional)" />
+                            <button type="submit" class="btn btn-outline-secondary">Save (fallback)</button>
+                        </form>
+                    </div>
+
+                    <div id="statusMsg" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<a class="btn btn-link mt-3"
+   asp-area="Admin"
+   asp-controller="Orders"
+   asp-action="Index">
+    ← Back to Orders
+</a>
+
+@section Scripts {
+    @Html.AntiForgeryToken() @* ensures the token input is present on the page *@
+
+    <script>
+        (function () {
+            const updateUrl = '@Url.Action("UpdateStatusAjax", "Orders", new { area = "Admin" })';
+            const saveBtn = document.getElementById('statusSaveBtn');
+            const select = document.getElementById('statusSelect');
+            const noteInput = document.getElementById('statusNote');
+            const statusMsg = document.getElementById('statusMsg');
+
+            saveBtn?.addEventListener('click', async function (e) {
+                e.preventDefault();
+
+                const orderId = select.dataset.orderId;
+                const newStatus = select.value;
+                const note = noteInput.value;
+
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+
+                const payload = { id: parseInt(orderId), status: newStatus, note: note };
+
+                statusMsg.innerHTML = '<span class="text-muted">Saving...</span>';
+
+                try {
+                    const res = await fetch(updateUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'RequestVerificationToken': token
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!res.ok) {
+                        // attempt to read json error message
+                        const errJson = await res.json().catch(() => null);
+                        const msg = (errJson && errJson.message) ? errJson.message : 'Update failed';
+                        statusMsg.innerHTML = '<span class="text-danger">' + msg + '</span>';
+                        return;
+                    }
+
+                    const json = await res.json();
+                    if (json.success) {
+                        statusMsg.innerHTML = '<span class="text-success">' + json.message + '</span>';
+                        // refresh to update timeline + history
+                        setTimeout(() => location.reload(), 600);
+                    } else {
+                        statusMsg.innerHTML = '<span class="text-danger">' + (json.message || 'Update failed') + '</span>';
+                    }
+                } catch (err) {
+                    // show fallback form
+                    document.getElementById('fallbackNewStatus').value = newStatus;
+                    document.getElementById('fallbackNote').value = note;
+                    document.getElementById('fallbackForm').classList.remove('d-none');
+                    statusMsg.innerHTML = '<span class="text-warning">AJAX failed — please use the fallback Save button.</span>';
+                }
+            });
+        })();
+    </script>
+}

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using NextCommerceShop.Data;
 using NextCommerceShop.Helpers;
 using NextCommerceShop.Models;
-
+using NextCommerceShop.Models.ViewModels;
 
 namespace NextCommerceShop.Controllers
 {
@@ -16,37 +16,80 @@ namespace NextCommerceShop.Controllers
             _context = context;
         }
 
-        // Public catalog page
-        public async Task<IActionResult> Index(int? categoryId, string? search)
+        // ===========================
+        // PUBLIC CATALOG
+        // ===========================
+        public async Task<IActionResult> Index(
+            int? categoryId,
+            string? search,
+            string? sortBy,
+            int page = 1,
+            int pageSize = 9)
         {
-            var productsQuery = _context.Products
+            // Base query
+            var query = _context.Products
                 .Include(p => p.Category)
                 .AsQueryable();
 
+            // Category filter
             if (categoryId.HasValue)
-            {
-                productsQuery = productsQuery.Where(p => p.CategoryId == categoryId.Value);
-            }
+                query = query.Where(p => p.CategoryId == categoryId.Value);
 
+            // Search filter (case-insensitive, EF-safe)
             if (!string.IsNullOrWhiteSpace(search))
             {
-                var s = search.Trim().ToLower();
-                productsQuery = productsQuery.Where(p =>
-                    p.Name.ToLower().Contains(s) ||
-                    (p.Description != null && p.Description.ToLower().Contains(s)));
+                var s = search.Trim();
+
+                query = query.Where(p =>
+                    EF.Functions.Like(p.Name, $"%{s}%") ||
+                    (p.Description != null && EF.Functions.Like(p.Description, $"%{s}%")));
             }
 
-            var products = await productsQuery.ToListAsync();
+            // Sorting
+            query = sortBy switch
+            {
+                "price_asc" => query.OrderBy(p => p.Price),
+                "price_desc" => query.OrderByDescending(p => p.Price),
+                "name_asc" => query.OrderBy(p => p.Name),
+                "name_desc" => query.OrderByDescending(p => p.Name),
+                _ => query.OrderByDescending(p => p.Id) // default newest first
+            };
 
-            ViewBag.Categories = await _context.Categories.ToListAsync();
-            ViewBag.SelectedCategoryId = categoryId;
-            ViewBag.Search = search;
+            // Pagination safety
+            if (page < 1) page = 1;
 
-            return View(products);
+            var totalItems = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalItems / (double)pageSize);
+
+            if (page > totalPages && totalPages > 0)
+                page = totalPages;
+
+            // Get paged data
+            var products = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            var vm = new CatalogViewModel
+            {
+                Products = products,
+                Categories = await _context.Categories.ToListAsync(),
+
+                SelectedCategoryId = categoryId,
+                Search = search,
+                SortBy = sortBy,
+
+                Page = page,
+                PageSize = pageSize,
+                TotalPages = totalPages
+            };
+
+            return View(vm);
         }
 
-
-        // Product details page
+        // ===========================
+        // PRODUCT DETAILS
+        // ===========================
         public async Task<IActionResult> Details(int id)
         {
             var product = await _context.Products
@@ -54,37 +97,32 @@ namespace NextCommerceShop.Controllers
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             if (product == null)
-            {
                 return NotFound();
-            }
 
             return View(product);
         }
+
+        // ===========================
+        // ADD TO CART
+        // ===========================
         [HttpPost]
         public async Task<IActionResult> AddToCart(int id)
         {
-            var product = await _context.Products
-                .FirstOrDefaultAsync(p => p.Id == id);
-
+            var product = await _context.Products.FindAsync(id);
             if (product == null)
-            {
                 return NotFound();
-            }
 
             const string cartKey = "Cart";
-
-            // Get current cart from session or create new one
             var cart = HttpContext.Session.GetObject<List<CartItem>>(cartKey)
                        ?? new List<CartItem>();
 
-            // See if product already in cart
-            var existingItem = cart.FirstOrDefault(c => c.ProductId == product.Id);
+            var existing = cart.FirstOrDefault(c => c.ProductId == id);
 
-            if (existingItem == null)
+            if (existing == null)
             {
                 cart.Add(new CartItem
                 {
-                    ProductId = product.Id,
+                    ProductId = id,
                     Name = product.Name,
                     Price = product.Price,
                     Quantity = 1
@@ -92,16 +130,12 @@ namespace NextCommerceShop.Controllers
             }
             else
             {
-                existingItem.Quantity += 1;
+                existing.Quantity += 1;
             }
 
-            // Save cart back to session
             HttpContext.Session.SetObject(cartKey, cart);
 
-            // Go to cart page
             return RedirectToAction("Index", "Cart");
         }
-
-
     }
 }

@@ -1,0 +1,248 @@
+﻿@using NextCommerceShop.ViewModels
+@using NextCommerceShop.Models
+@model AdminDashboardViewModel
+
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+<h1 class="mb-4">Admin Dashboard</h1>
+
+<!-- KPI CARDS -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">Total orders</div>
+                <div class="fs-3 fw-semibold">@Model.TotalOrders</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">Pending</div>
+                <div class="fs-3 fw-semibold">@Model.PendingOrders</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">Processing</div>
+                <div class="fs-3 fw-semibold">@Model.ProcessingOrders</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">Total revenue</div>
+                <div class="fs-5 fw-semibold">@Model.TotalRevenue.ToString("0.00") €</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-1">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">Orders today</div>
+                <div class="fs-3 fw-semibold">@Model.OrdersToday</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-2">
+        <div class="card shadow-sm h-100">
+            <div class="card-body">
+                <div class="text-muted text-uppercase small">Today’s revenue</div>
+                <div class="fs-5 fw-semibold">@Model.TodaysRevenue.ToString("0.00") €</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<!-- QUICK ACTIONS -->
+<div class="card shadow-sm mb-4">
+    <div class="card-body d-flex flex-wrap gap-2">
+        <!-- Add new product -->
+        <a href="/Products/Create" class="btn btn-primary btn-sm">
+            <i class="bi bi-plus-circle"></i> Add new product
+        </a>
+
+        <!-- View all products -->
+        <a href="/Products" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-box-seam"></i> View all products
+        </a>
+
+        <!-- Manage categories -->
+        <a href="/Categories" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-tags"></i> Manage categories
+        </a>
+
+        <!-- View all orders (admin area) -->
+        <a href="/Admin/Orders" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-receipt-cutoff"></i> View all orders
+        </a>
+
+        <!-- Go to public shop -->
+        <a href="/Shop" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-shop"></i> Go to shop
+        </a>
+    </div>
+</div>
+
+    <!-- LATEST ORDERS -->
+    <div class="col-lg-8">
+        <div class="card shadow-sm h-100">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span class="fw-semibold">Latest orders</span>
+                <a asp-area="Admin" asp-controller="Orders" asp-action="Index" class="small">View all</a>
+            </div>
+            <div class="card-body p-0">
+                <table class="table table-hover mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (Model.LatestOrders.Any())
+                        {
+                            foreach (var order in Model.LatestOrders)
+                            {
+                                <tr>
+                                    <td>#@order.Id</td>
+                                    <td>@order.FullName</td>
+                                    <td>@order.TotalAmount.ToString("0.00") €</td>
+                                    <td>@order.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>
+                                        <span class="badge rounded-pill
+                                                    @(order.Status == OrderStatus.Pending ? "bg-warning text-dark" :
+                                                                                            order.Status == OrderStatus.Paid ? "bg-info text-dark" :
+                                                                                            order.Status == OrderStatus.Processing ? "bg-primary" :
+                                                                                            order.Status == OrderStatus.Shipped ? "bg-secondary" :
+                                                                                            order.Status == OrderStatus.Completed ? "bg-success" :
+                                                                                            order.Status == OrderStatus.Cancelled ? "bg-danger" :
+                                                                                            order.Status == OrderStatus.Refunded ? "bg-dark" : "bg-light text-dark")">
+                                            @order.Status
+                                        </span>
+                                    </td>
+                                    <td class="text-end">
+                                        <a asp-area="Admin" asp-controller="Orders" asp-action="Details"
+                                           asp-route-id="@order.Id"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            Details
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center py-3 text-muted">
+                                    No orders found.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- SIDE PANEL: LOW STOCK / BEST SELLERS / CUSTOMERS -->
+    <div class="col-lg-4">
+        <!-- Low stock -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header fw-semibold">
+                Low stock products
+            </div>
+            <div class="card-body">
+                @if (Model.LowStockProducts.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var p in Model.LowStockProducts)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>@p.Name</span>
+                                <span class="badge bg-danger-subtle text-danger">
+                                    Stock: @p.Stock
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-muted small">No products are low on stock 🎉</div>
+                }
+            </div>
+        </div>
+
+        <!-- Best selling -->
+        <div class="card shadow-sm mb-3">
+            <div class="card-header fw-semibold">
+                Best-selling products
+            </div>
+            <div class="card-body">
+                @if (Model.BestSellingProducts.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var p in Model.BestSellingProducts)
+                        {
+                            <li class="list-group-item d-flex justify-content-between align-items-center px-0">
+                                <span>@p.Name</span>
+                                <span class="badge bg-success-subtle text-success">
+                                    Sold: @p.TotalSold
+                                </span>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-muted small">No sales data yet.</div>
+                }
+            </div>
+        </div>
+
+        <!-- Recent customers -->
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">
+                Recent customers
+            </div>
+            <div class="card-body">
+                @if (Model.RecentCustomers.Any())
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var c in Model.RecentCustomers)
+                        {
+                            <li class="list-group-item px-0">
+                                <div class="fw-semibold">@c.Name</div>
+                                <div class="small text-muted">@c.Email</div>
+                                <div class="small text-muted">
+                                    Orders: @c.OrdersCount • Last: @c.LastOrderDate.ToString("dd.MM.yyyy")
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-muted small">No customers yet.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

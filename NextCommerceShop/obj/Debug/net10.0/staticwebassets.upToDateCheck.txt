@@ -1,7 +1,10 @@
 wwwroot\css\site.css
 wwwroot\favicon.ico
+wwwroot\images\products\1cac5c8d-5cc5-415c-bdb2-1e1f6d3219e0.jpg
 wwwroot\images\products\1f26ca16-22ff-4c4d-a608-8dbef9e4b8cb.jpg
 wwwroot\images\products\5163945b-69a2-42ef-83cf-f60f93e46570.jpg
+wwwroot\images\products\7f2b2e5e-74d7-4717-b355-5cd8179fd66f.jpg
+wwwroot\images\products\af575a59-0d69-47e8-9133-e649e4bfb28f.jpg
 wwwroot\images\products\b93d0cbe-8c74-4dde-98f6-35683b595e35.jpg
 wwwroot\images\products\fd587d5c-03f8-4018-9d1d-08daf34730fd.jpg
 wwwroot\js\site.js

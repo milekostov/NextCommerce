@@ -1,0 +1,161 @@
+﻿@using NextCommerceShop.Models
+@model Order
+
+@{
+    ViewData["Title"] = $"Order #{Model.Id}";
+}
+
+<h1 class="mb-3">Order #@Model.Id</h1>
+@{
+    // Define the main timeline steps
+    var timelineSteps = new[]
+    {
+        OrderStatus.Pending,
+        OrderStatus.Processing,
+        OrderStatus.Shipped,
+        OrderStatus.Completed
+    };
+
+    // Find where the current status sits in the normal flow
+    var currentIndex = Array.IndexOf(timelineSteps, Model.Status);
+    if (currentIndex == -1)
+    {
+        // If status is not one of the main ones (e.g. Cancelled/Refunded),
+        // treat it as the first step for the visual.
+        currentIndex = 0;
+    }
+
+    bool isTerminalStatus =
+        Model.Status == OrderStatus.Cancelled ||
+        Model.Status == OrderStatus.Refunded;
+}
+
+<div class="mb-4">
+    <div class="small text-muted mb-1">Order progress</div>
+
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        @for (int i = 0; i < timelineSteps.Length; i++)
+        {
+            var step = timelineSteps[i];
+            bool isDone = !isTerminalStatus && i < currentIndex;
+            bool isCurrent = !isTerminalStatus && i == currentIndex;
+
+            string label = step.ToString();
+            string badgeClass = isCurrent
+            ? "bg-primary text-white"
+            : isDone
+            ? "bg-success text-white"
+            : "bg-light text-muted";
+
+            <div class="d-flex align-items-center">
+                @* connector line (skip before first step) *@
+                @if (i > 0)
+                {
+                    <div class="mx-1"
+                         style="width: 28px; height: 2px;
+                                        background-color:@(isDone || isCurrent ? "#0d6efd" : "#dee2e6");">
+                    </div>
+                }
+
+                <span class="badge rounded-pill @badgeClass">
+                    @label
+                </span>
+            </div>
+        }
+
+        @* If order is cancelled or refunded, show it explicitly *@
+        @if (isTerminalStatus)
+        {
+            <span class="badge rounded-pill bg-danger ms-2">
+                @Model.Status
+            </span>
+        }
+    </div>
+</div>
+
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">
+                Order info
+            </div>
+            <div class="card-body">
+                <p><strong>Date:</strong> @Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</p>
+                <p>
+                    <strong>Status:</strong>
+                    <span class="badge rounded-pill
+                        @(Model.Status == OrderStatus.Pending ? "bg-warning text-dark" :
+                                                    Model.Status == OrderStatus.Paid ? "bg-info text-dark" :
+                                                    Model.Status == OrderStatus.Processing ? "bg-primary" :
+                                                    Model.Status == OrderStatus.Shipped ? "bg-secondary" :
+                                                    Model.Status == OrderStatus.Completed ? "bg-success" :
+                                                    Model.Status == OrderStatus.Cancelled ? "bg-danger" :
+                                                    Model.Status == OrderStatus.Refunded ? "bg-dark" : "bg-light text-dark")">
+                        @Model.Status
+                    </span>
+                </p>
+                <p><strong>Total:</strong> @Model.TotalAmount.ToString("0.00") €</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card shadow-sm">
+            <div class="card-header fw-semibold">
+                Shipping details
+            </div>
+            <div class="card-body">
+                <p><strong>Name:</strong> @Model.FullName</p>
+                <p><strong>Address:</strong> @Model.Address</p>
+                <p><strong>City:</strong> @Model.City</p>
+                <p><strong>Phone:</strong> @Model.Phone</p>
+                <p><strong>Email:</strong> @Model.Email</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header fw-semibold">
+        Items
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0 align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th>Product</th>
+                    <th class="text-end">Unit price</th>
+                    <th class="text-end">Quantity</th>
+                    <th class="text-end">Line total</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items != null && Model.Items.Any())
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        <tr>
+                            <td>@item.ProductName</td>
+                            <td class="text-end">@item.UnitPrice.ToString("0.00") €</td>
+                            <td class="text-end">@item.Quantity</td>
+                            <td class="text-end">@item.LineTotal.ToString("0.00") €</td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="text-center py-3 text-muted">
+                            No items found for this order.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<a asp-controller="MyOrders" asp-action="Index" class="btn btn-link mt-3">
+    ← Back to My Orders
+</a>

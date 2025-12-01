@@ -1,0 +1,46 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.sln.docstates
+
+# Build results
+bin/
+obj/
+out/
+
+# Logs
+*.log
+
+# User-specific files
+*.userprefs
+*.rsuser
+
+# ASP.NET temp files
+*.cache
+**/Properties/launchSettings.json
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Cache
+*.pidb
+*.svclog
+*.scc
+
+# Config transforms
+appsettings.*.local.json
+secrets.json
+
+# Rider
+.idea/
+
+# Mac/Linux
+.DS_Store
+*.swp
+
+# Publish output
+wwwroot/lib/

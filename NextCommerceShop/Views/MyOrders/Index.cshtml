@@ -1,0 +1,63 @@
+﻿@using NextCommerceShop.Models
+@model IEnumerable<Order>
+
+@{
+    ViewData["Title"] = "My Orders";
+}
+
+<h1 class="mb-4">My Orders</h1>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        You don’t have any orders yet.
+    </div>
+}
+else
+{
+    <div class="card shadow-sm">
+        <div class="card-body p-0">
+            <table class="table table-hover mb-0 align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th>ID</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model)
+                    {
+                        <tr>
+                            <td>#@order.Id</td>
+                            <td>@order.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</td>
+                            <td>@order.TotalAmount.ToString("0.00") €</td>
+                            <td>
+                                <span class="badge rounded-pill
+                                            @(order.Status == OrderStatus.Pending ? "bg-warning text-dark" :
+                                                                            order.Status == OrderStatus.Paid ? "bg-info text-dark" :
+                                                                            order.Status == OrderStatus.Processing ? "bg-primary" :
+                                                                            order.Status == OrderStatus.Shipped ? "bg-secondary" :
+                                                                            order.Status == OrderStatus.Completed ? "bg-success" :
+                                                                            order.Status == OrderStatus.Cancelled ? "bg-danger" :
+                                                                            order.Status == OrderStatus.Refunded ? "bg-dark" : "bg-light text-dark")">
+                                    @order.Status
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <a asp-controller="MyOrders"
+                                   asp-action="Details"
+                                   asp-route-id="@order.Id"
+                                   class="btn btn-sm btn-outline-secondary">
+                                    Details
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+}

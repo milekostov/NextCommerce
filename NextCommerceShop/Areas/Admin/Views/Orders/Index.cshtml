@@ -1,0 +1,93 @@
+﻿@model IEnumerable<NextCommerceShop.Models.Order>
+@using NextCommerceShop.Models
+
+@functions {
+    string StatusBadgeClass(OrderStatus status) => status switch
+    {
+        OrderStatus.Pending => "bg-warning text-dark",
+        OrderStatus.Paid => "bg-white border text-dark",
+        OrderStatus.Processing => "bg-primary",
+        OrderStatus.Shipped => "bg-info text-dark",     // ← SHIPPED = cyan (Bootstrap native)
+        OrderStatus.Completed => "bg-success",
+        OrderStatus.Cancelled => "bg-danger",
+        OrderStatus.Refunded => "bg-secondary",
+        _ => "bg-secondary"
+    };
+}
+
+
+@{
+    ViewData["Title"] = "Orders";
+}
+
+<h1 class="mb-3">Orders</h1>
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <input name="search"
+               class="form-control"
+               placeholder="Search id / name / email / phone"
+               value="@ViewBag.Search" />
+    </div>
+
+    <div class="col-md-3">
+        <select name="status" class="form-select">
+            <option value="">All statuses</option>
+            @foreach (var s in Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>())
+            {
+                <option value="@s" @(ViewBag.Status?.ToString() == s.ToString() ? "selected" : "")>
+                    @s
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">Filter</button>
+    </div>
+</form>
+
+
+<table class="table table-hover align-middle">
+    <thead class="table-light">
+        <tr>
+            <th>#</th>
+            <th>Date</th>
+            <th>Customer</th>
+            <th>Email</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var o in Model)
+        {
+            <tr>
+                <td>@o.Id</td>
+                <td>@o.CreatedAt.ToLocalTime().ToString("dd MMM yyyy HH:mm")</td>
+                <td>@o.FullName</td>
+                <td>@o.Email</td>
+                <td>@o.TotalAmount.ToString("0.00") €</td>
+                
+                <td>
+                    <span class="badge rounded-pill @StatusBadgeClass(o.Status)">
+                        @o.Status
+                    </span>
+                </td>
+                
+
+                <td class="text-end">
+                    <a class="btn btn-sm btn-outline-primary"
+                       asp-area="Admin"
+                       asp-controller="Orders"
+                       asp-action="Details"
+                       asp-route-id="@o.Id">
+                        Details
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
