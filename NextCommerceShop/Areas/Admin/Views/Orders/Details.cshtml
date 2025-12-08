@@ -199,7 +199,15 @@
                     <select id="statusSelect" class="form-select mb-2" data-order-id="@Model.Id">
                         @foreach (var s in Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>())
                         {
-                            <option value="@s" @(Model.Status == s ? "selected" : "")>@s</option>
+                            @if (Model.Status == s)
+                            {
+                                <option value="@s" selected>@s</option>
+                            }
+                            else
+                            {
+                                <option value="@s">@s</option>
+                            }
+
                         }
                     </select>
 

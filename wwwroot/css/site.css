@@ -20,3 +20,42 @@ html {
 body {
   margin-bottom: 60px;
 }
+
+/* Portrait-friendly product image helpers */
+
+/* Wrapper fixes: fixed-height box that centers images (portrait-friendly) */
+.product-image-wrapper {
+  height: 360px; /* taller to favor portrait orientation */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #f8f9fa; /* subtle neutral background for letterboxing */
+}
+
+/* Image stays within wrapper, preserves aspect ratio, no cropping */
+.product-image-wrapper img.product-image {
+  max-height: 100%;
+  max-width: 100%;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+  display: block;
+}
+
+/* Smaller wrappers on narrow screens */
+@media (max-width: 767.98px) {
+  .product-image-wrapper {
+    height: 260px;
+  }
+}
+
+/* Small thumbnail helper used in admin/product lists */
+.product-thumb {
+  height: 100px;
+  width: auto;
+  object-fit: contain;
+  object-position: center;
+  display: inline-block;
+}

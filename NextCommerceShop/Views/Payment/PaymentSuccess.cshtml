@@ -1,0 +1,53 @@
+﻿@model NextCommerceShop.Models.Order
+
+@{
+    ViewData["Title"] = "Payment Successful";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+
+            <div class="card shadow-lg border-success">
+                <div class="card-header bg-success text-white text-center py-3">
+                    <h3 class="mb-0">
+                        <i class="bi bi-check-circle-fill"></i>
+                        Payment Successful
+                    </h3>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <p class="lead text-center mb-4">
+                        Thank you! Your payment has been verified.
+                    </p>
+
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><strong>Order ID:</strong></span>
+                            <span>@Model.Id</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><strong>Total Amount:</strong></span>
+                            <span>@Model.TotalAmount.ToString("0.00") €</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><strong>Status:</strong></span>
+                            <span class="text-success fw-bold">@Model.Status</span>
+                        </li>
+                    </ul>
+
+                    <div class="text-center">
+                        <a href="/" class="btn btn-primary btn-lg">
+                            <i class="bi bi-house-door"></i> Return to Home
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

@@ -33,5 +33,7 @@ namespace NextCommerceShop.Models
 
         // Items
         public List<OrderItem> Items { get; set; } = new();
+        public List<OrderStatusHistory> StatusHistory { get; set; } = new();
+
     }
 }

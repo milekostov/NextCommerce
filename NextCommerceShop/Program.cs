@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using NextCommerceShop.Data;
 using NextCommerceShop.Models;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using NextCommerceShop.Services;
-
+using NextCommerceShop.Services.Payments;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +23,6 @@ builder.Services
 
 builder.Services.AddTransient<IEmailSender, BrevoEmailSender>();
 
-
 builder.Services.AddRazorPages();
 
 builder.Services.AddHttpContextAccessor();
@@ -31,6 +30,12 @@ builder.Services.AddHttpContextAccessor();
 // EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Register IPaymentService -> PaymentService
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+// register the concrete provider(s)
+builder.Services.AddSingleton<IPaymentProvider, StubProvider>();
 
 // Session (Cart)
 builder.Services.AddSession(options =>
@@ -42,7 +47,6 @@ builder.Services.AddSession(options =>
 
 var app = builder.Build();
 await SeedAdminAsync(app.Services);
-
 
 async Task SeedAdminAsync(IServiceProvider services)
 {
@@ -65,7 +69,6 @@ async Task SeedAdminAsync(IServiceProvider services)
     if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, adminRole))
         await userManager.AddToRoleAsync(adminUser, adminRole);
 }
-
 
 // Pipeline
 if (!app.Environment.IsDevelopment())

@@ -35,9 +35,15 @@
             <option value="">All statuses</option>
             @foreach (var s in Enum.GetValues(typeof(OrderStatus)).Cast<OrderStatus>())
             {
-                <option value="@s" @(ViewBag.Status?.ToString() == s.ToString() ? "selected" : "")>
-                    @s
-                </option>
+                @if (ViewBag.Status?.ToString() == s.ToString())
+                {
+                    <option value="@s" selected>@s</option>
+                }
+                else
+                {
+                    <option value="@s">@s</option>
+                }
+
             }
         </select>
     </div>

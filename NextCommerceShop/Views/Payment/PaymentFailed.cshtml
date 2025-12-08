@@ -1,0 +1,57 @@
+﻿@model NextCommerceShop.Models.Order
+
+@{
+    ViewData["Title"] = "Payment Failed";
+}
+
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+
+            <div class="card shadow-lg border-danger">
+                <div class="card-header bg-danger text-white text-center py-3">
+                    <h3 class="mb-0">
+                        <i class="bi bi-x-circle-fill"></i>
+                        Payment Failed
+                    </h3>
+                </div>
+
+                <div class="card-body p-4">
+
+                    <p class="lead text-center mb-4">
+                        Unfortunately, your payment could not be verified.
+                    </p>
+
+                    <ul class="list-group mb-4">
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><strong>Order ID:</strong></span>
+                            <span>@Model.Id</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><strong>Total Amount:</strong></span>
+                            <span>@Model.TotalAmount.ToString("0.00") €</span>
+                        </li>
+
+                        <li class="list-group-item d-flex justify-content-between">
+                            <span><strong>Status:</strong></span>
+                            <span class="text-danger fw-bold">@Model.Status</span>
+                        </li>
+                    </ul>
+
+                    <div class="text-center">
+                        <a href="/Checkout" class="btn btn-warning btn-lg me-2">
+                            <i class="bi bi-arrow-repeat"></i> Try Again
+                        </a>
+
+                        <a href="/" class="btn btn-secondary btn-lg">
+                            <i class="bi bi-house-door"></i> Home
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>

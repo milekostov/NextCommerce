@@ -9,7 +9,7 @@
 <div class="row">
     <div class="col-md-6">
 
-        @* 🔹 Large product image *@
+        @* Large product image (portrait-friendly wrapper) *@
         @if (!string.IsNullOrEmpty(Model.ImageUrl))
         {
             <div class="position-relative d-inline-block">
@@ -23,15 +23,18 @@
                     <span class="product-badge badge-low">LOW STOCK</span>
                 }
 
-                <img src="@Model.ImageUrl" class="img-fluid" alt="@Model.Name" />
+                <div class="product-image-wrapper">
+                    <img src="@Model.ImageUrl" class="img-fluid product-image rounded" alt="@Model.Name" />
+                </div>
             </div>
-
         }
         else
         {
-            <img src="https://via.placeholder.com/600x400?text=No+Image"
-                 class="img-fluid shadow-sm rounded mb-3"
-                 alt="No image available" />
+            <div class="product-image-wrapper">
+                <img src="https://via.placeholder.com/400x600?text=No+Image"
+                     class="img-fluid product-image shadow-sm rounded mb-3"
+                     alt="No image available" />
+            </div>
         }
 
     </div>
@@ -56,7 +59,6 @@
             <button type="submit" class="btn btn-primary" @(Model.StockQuantity == 0 ? "disabled" : "")>
                 Add to cart
             </button>
-
         </form>
 
         <a asp-controller="Shop" asp-action="Index" class="btn btn-outline-secondary mt-3">

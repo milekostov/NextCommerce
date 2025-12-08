@@ -4,16 +4,20 @@ using NextCommerceShop.Data;
 using NextCommerceShop.Helpers;
 using NextCommerceShop.Models;
 using NextCommerceShop.Models.ViewModels;
+using NextCommerceShop.Services.Payments;
 
 namespace NextCommerceShop.Controllers
 {
     public class ShopController : Controller
     {
         private readonly AppDbContext _context;
+        private readonly IPaymentService _paymentService;
 
-        public ShopController(AppDbContext context)
+
+        public ShopController(AppDbContext context, IPaymentService paymentService  )
         {
             _context = context;
+            _paymentService = paymentService;
         }
 
         // ===========================
@@ -137,5 +141,77 @@ namespace NextCommerceShop.Controllers
 
             return RedirectToAction("Index", "Cart");
         }
+        public async Task<IActionResult> Checkout()
+        {
+            const string cartKey = "Cart";
+            var cart = HttpContext.Session.GetObject<List<CartItem>>(cartKey) ?? new List<CartItem>();
+
+            if (!cart.Any())
+                return RedirectToAction("Index");
+
+            var vm = new CheckoutViewModel
+            {
+                CartItems = cart,
+                TotalAmount = cart.Sum(c => c.Price * c.Quantity)
+            };
+
+            return View(vm);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Checkout(CheckoutViewModel model)
+        {
+            const string cartKey = "Cart";
+            var cart = HttpContext.Session.GetObject<List<CartItem>>(cartKey) ?? new List<CartItem>();
+
+            if (!cart.Any())
+                return RedirectToAction("Index", "Shop"); // Cart empty
+
+            var totalAmount = cart.Sum(c => c.Price * c.Quantity);
+
+            // 1) Create Order
+            var order = new Order
+            {
+                FullName = model.FullName,
+                Address = model.Address,
+                City = model.City,
+                Phone = model.Phone,
+                Email = model.Email,
+                TotalAmount = totalAmount,
+                Status = OrderStatus.Pending
+            };
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            // 2) Create OrderItems
+            foreach (var item in cart)
+            {
+                _context.OrderItems.Add(new OrderItem
+                {
+                    OrderId = order.Id,
+                    ProductId = item.ProductId,
+                    Quantity = item.Quantity,
+                    UnitPrice = item.Price
+                });
+            }
+            await _context.SaveChangesAsync();
+
+            // 3) Create PaymentRequest
+            var paymentRequest = new PaymentRequest
+            {
+                OrderId = order.Id,
+                Amount = order.TotalAmount,
+                Currency = "MKD",
+                Description = $"Order #{order.Id}"
+            };
+
+            // 4) Redirect to payment provider
+            // Replace "StubProvider" with real provider later
+            var redirectUrl = await _paymentService.CreatePaymentAsync("StubProvider", paymentRequest);
+
+            return Redirect(redirectUrl);
+        }
+
     }
 }

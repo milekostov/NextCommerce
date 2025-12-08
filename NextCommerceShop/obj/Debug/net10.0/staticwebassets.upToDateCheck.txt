@@ -68,7 +68,6 @@ wwwroot\lib\jquery\dist\jquery.slim.js
 wwwroot\lib\jquery\dist\jquery.slim.min.js
 wwwroot\lib\jquery\dist\jquery.slim.min.map
 wwwroot\lib\jquery\LICENSE.txt
-C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\wwwroot\css\site.css
 C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\wwwroot\favicon.ico
 C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\wwwroot\js\site.js
 C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css
@@ -130,3 +129,4 @@ C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\wwwroot\lib\jquery\dis
 C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\wwwroot\lib\jquery\dist\jquery.slim.min.js
 C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\wwwroot\lib\jquery\dist\jquery.slim.min.map
 C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\wwwroot\lib\jquery\LICENSE.txt
+C:\Users\Admin\source\repos\NextCommerce\NextCommerceShop\wwwroot\css\site.css

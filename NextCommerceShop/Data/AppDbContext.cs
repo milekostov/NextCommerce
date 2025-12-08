@@ -14,6 +14,8 @@ namespace NextCommerceShop.Data
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderItem> OrderItems { get; set; }
         public DbSet<OrderStatusHistory> OrderStatusHistories { get; set; }
+        public DbSet<PaymentTransaction> PaymentTransactions { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -30,6 +32,10 @@ namespace NextCommerceShop.Data
             modelBuilder.Entity<Order>()
                 .Property(o => o.TotalAmount)
                 .HasPrecision(18, 2);
+            modelBuilder.Entity<PaymentTransaction>()
+    .Property(p => p.Amount)
+    .HasPrecision(18, 2);
+
         }
     }
 }
