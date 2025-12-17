@@ -1,0 +1,113 @@
+﻿@model List<NextCommerceShop.ViewModels.UserWithRolesViewModel>
+
+<h2>User Management</h2>
+
+@if (TempData["Success"] is string success)
+{
+    <div class="alert alert-success">@success</div>
+}
+
+@if (TempData["Error"] is string err)
+{
+    <div class="alert alert-danger">@err</div>
+}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>Email</th>
+            <th>Full Name</th>
+            <th>Roles</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var u in Model)
+        {
+            var user = u.User;
+            var isLocked = user.LockoutEnd.HasValue &&
+            user.LockoutEnd > DateTimeOffset.UtcNow;
+
+            <tr>
+                <td>@user.Email</td>
+                <td>@user.FullName</td>
+                <td>@string.Join(", ", u.Roles)</td>
+                <td>
+                    @if (isLocked)
+                    {
+                        <span class="badge bg-danger">Locked</span>
+                    }
+                    else
+                    {
+                        <span class="badge bg-success">Active</span>
+                    }
+                </td>
+                <td>
+                    @if (u.Roles.Contains("Admin"))
+                    {
+                        <form asp-area="Admin"
+                              asp-controller="Users"
+                              asp-action="RemoveAdmin"
+                              method="post"
+                              class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="UserId" value="@user.Id" />
+                            <button class="btn btn-outline-danger btn-sm"
+                                    onclick="return confirm('Remove Admin from this user?');">
+                                Remove Admin
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-area="Admin"
+                              asp-controller="Users"
+                              asp-action="PromoteToAdmin"
+                              method="post"
+                              class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="UserId" value="@user.Id" />
+                            <button class="btn btn-outline-primary btn-sm"
+                                    onclick="return confirm('Promote this user to Admin?');">
+                                Make Admin
+                            </button>
+                        </form>
+
+                        @* Lock / Unlock *@
+                        @if (isLocked)
+                        {
+                            <form asp-area="Admin"
+                                  asp-controller="Users"
+                                  asp-action="Unlock"
+                                  method="post"
+                                  class="d-inline ms-1">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <button class="btn btn-success btn-sm">
+                                    Unlock
+                                </button>
+                            </form>
+                        }
+                        else
+                        {
+                            <form asp-area="Admin"
+                                  asp-controller="Users"
+                                  asp-action="Lock"
+                                  method="post"
+                                  class="d-inline ms-1">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userId" value="@user.Id" />
+                                <button class="btn btn-warning btn-sm"
+                                        onclick="return confirm('Lock this user?');">
+                                    Lock
+                                </button>
+                            </form>
+                        }
+                    }
+
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

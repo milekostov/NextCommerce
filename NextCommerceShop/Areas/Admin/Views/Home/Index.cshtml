@@ -66,28 +66,47 @@
 </div>
 
 <!-- QUICK ACTIONS -->
-<!-- QUICK ACTIONS -->
 <div class="card shadow-sm mb-4">
     <div class="card-body d-flex flex-wrap gap-2">
-        <!-- Add new product -->
-        <a href="/Products/Create" class="btn btn-primary btn-sm">
+        <a asp-controller="Products"
+           asp-action="Create"
+           class="btn btn-primary btn-sm">
             <i class="bi bi-plus-circle"></i> Add new product
         </a>
 
-        <!-- View all products -->
-        <a href="/Products" class="btn btn-outline-secondary btn-sm">
+        <a asp-controller="Products"
+           asp-action="Index"
+           class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-box-seam"></i> View all products
         </a>
 
-        <!-- Manage categories -->
-        <a href="/Categories" class="btn btn-outline-secondary btn-sm">
+        <a asp-controller="Categories"
+           asp-action="Index"
+           class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-tags"></i> Manage categories
         </a>
 
-        <!-- View all orders (admin area) -->
-        <a href="/Admin/Orders" class="btn btn-outline-secondary btn-sm">
+        <a asp-area="Admin"
+           asp-controller="Orders"
+           asp-action="Index"
+           class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-receipt-cutoff"></i> View all orders
         </a>
+
+        <a asp-controller="Shop"
+           asp-action="Index"
+           class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-shop"></i> Go to shop
+        </a>
+
+
+        <a asp-area="Admin"
+           asp-controller="Users"
+           asp-action="Index"
+           class="btn btn-outline-dark">
+            👤 User management
+        </a>
+
 
         <!-- Go to public shop -->
         <a href="/Shop" class="btn btn-outline-secondary btn-sm">

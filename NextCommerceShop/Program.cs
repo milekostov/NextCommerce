@@ -1,43 +1,58 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using NextCommerceShop.Application.Abstractions;
 using NextCommerceShop.Data;
+using NextCommerceShop.Infrastructure.Auditing;
+using NextCommerceShop.Infrastructure.Identity;
 using NextCommerceShop.Models;
+using NextCommerceShop.Models.Settings;
 using NextCommerceShop.Services;
 using NextCommerceShop.Services.Payments;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ----------------------------------------
+// Bind strongly typed settings
+// ----------------------------------------
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Email"));
+builder.Services.Configure<AdminUserSettings>(builder.Configuration.GetSection("AdminUser"));
+
 // MVC Controllers + Views
 builder.Services.AddControllersWithViews();
 
-// Identity (with required email confirmation)
+// Identity
 builder.Services
     .AddDefaultIdentity<ApplicationUser>(options =>
     {
         options.SignIn.RequireConfirmedAccount = true;
         options.User.RequireUniqueEmail = true;
+
+        // ✅ REQUIRED for Admin lock / unlock
+        options.Lockout.AllowedForNewUsers = true;
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<AppDbContext>();
 
+// Auditing
+builder.Services.AddScoped<IActorContext, HttpActorContext>();
+builder.Services.AddScoped<IAuditService, AuditService>();
+
 builder.Services.AddTransient<IEmailSender, BrevoEmailSender>();
 
 builder.Services.AddRazorPages();
-
 builder.Services.AddHttpContextAccessor();
 
 // EF Core
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register IPaymentService -> PaymentService
+// Payments
 builder.Services.AddScoped<IPaymentService, PaymentService>();
-
-// register the concrete provider(s)
 builder.Services.AddSingleton<IPaymentProvider, StubProvider>();
 
-// Session (Cart)
+// Session
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -54,19 +69,35 @@ async Task SeedAdminAsync(IServiceProvider services)
 
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    var adminSettings = scope.ServiceProvider.GetRequiredService<IOptions<AdminUserSettings>>().Value;
 
     const string adminRole = "Admin";
 
-    // 1) Create Admin role if missing
     if (!await roleManager.RoleExistsAsync(adminRole))
         await roleManager.CreateAsync(new IdentityRole(adminRole));
 
-    // 2) Promote this email to Admin (you will change this in Step 3)
-    var adminEmail = "mkostov@nextbyte.mk";
+    if (string.IsNullOrWhiteSpace(adminSettings.Email) || string.IsNullOrWhiteSpace(adminSettings.Password))
+        throw new Exception("AdminUser settings are missing in appsettings or UserSecrets.");
 
-    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    var adminUser = await userManager.FindByEmailAsync(adminSettings.Email);
 
-    if (adminUser != null && !await userManager.IsInRoleAsync(adminUser, adminRole))
+    if (adminUser == null)
+    {
+        adminUser = new ApplicationUser
+        {
+            UserName = adminSettings.Email,
+            Email = adminSettings.Email,
+            EmailConfirmed = true
+        };
+
+        var result = await userManager.CreateAsync(adminUser, adminSettings.Password);
+
+        if (!result.Succeeded)
+            throw new Exception("Failed to create admin: " +
+                                string.Join(", ", result.Errors.Select(e => e.Description)));
+    }
+
+    if (!await userManager.IsInRoleAsync(adminUser, adminRole))
         await userManager.AddToRoleAsync(adminUser, adminRole);
 }
 
@@ -83,20 +114,18 @@ app.UseStaticFiles();
 app.UseRouting();
 
 app.UseSession();
-app.UseAuthentication();     // <-- IMPORTANT
+app.UseAuthentication();
 app.UseAuthorization();
-
-// MVC
 
 app.MapControllerRoute(
     name: "areas",
     pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
 );
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Shop}/{action=Index}/{id?}");
 
-// Identity Razor Pages
 app.MapRazorPages();
 
 app.Run();
